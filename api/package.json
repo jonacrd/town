@@ -14,10 +14,17 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma migrate reset --force",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "deploy:build": "npm run db:generate && npm run build",
+    "deploy:migrate": "prisma migrate deploy",
+    "deploy:seed": "tsx prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "railway:deploy": "npm run deploy:migrate && npm run deploy:seed && npm start",
+    "render:deploy": "npm run deploy:migrate && npm run deploy:seed && npm start"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",

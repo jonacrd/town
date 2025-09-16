@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: town-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    region: oregon
+    branch: master
+    buildCommand: npm run deploy:build
+    startCommand: npm run render:deploy
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: DATABASE_URL
+        sync: false
+      - key: ALLOW_ORIGIN
+        sync: false
+      - key: WHATSAPP_PROVIDER
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+    autoDeploy: true
+    
+databases:
+  - name: town-postgres
+    databaseName: town
+    plan: starter
+    region: oregon
+    ipAllowList: []

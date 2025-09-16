@@ -1,0 +1,153 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Town - Sin conexión" showBottomNav={false} showTopNav={false}>
+  <div class="min-h-screen bg-bg flex items-center justify-center px-4">
+    <div class="text-center max-w-md mx-auto">
+      <!-- Icono offline -->
+      <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-8">
+        <svg class="w-12 h-12 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 2.83L7 17m9-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+
+      <!-- Mensaje principal -->
+      <h1 class="text-2xl lg:text-3xl font-bold text-ink mb-4">
+        Sin conexión a internet
+      </h1>
+      
+      <p class="text-muted mb-8 leading-relaxed">
+        Parece que no tienes conexión a internet. Verifica tu conexión y vuelve a intentarlo.
+      </p>
+
+      <!-- Botones de acción -->
+      <div class="space-y-3">
+        <button
+          id="retry-btn"
+          class="w-full bg-primary hover:bg-blue-700 text-primary-fg py-3 px-6 rounded-soft font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 transition-colors"
+        >
+          Reintentar
+        </button>
+        
+        <button
+          id="go-home-btn"
+          class="w-full border border-gray-300 text-ink hover:bg-gray-50 py-3 px-6 rounded-soft font-medium focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
+        >
+          Ir al inicio
+        </button>
+      </div>
+
+      <!-- Información adicional -->
+      <div class="mt-12 p-4 bg-surface rounded-soft border border-gray-200">
+        <h3 class="font-semibold text-ink mb-2">¿Qué puedes hacer?</h3>
+        <ul class="text-sm text-muted space-y-1 text-left">
+          <li>• Verifica tu conexión WiFi o datos móviles</li>
+          <li>• Intenta recargar la página</li>
+          <li>• Revisa que tu dispositivo tenga señal</li>
+          <li>• Contacta a tu proveedor de internet si el problema persiste</li>
+        </ul>
+      </div>
+
+      <!-- Estado de conexión -->
+      <div id="connection-status" class="mt-6 text-sm">
+        <span class="inline-flex items-center px-3 py-1 rounded-soft text-red-600 bg-red-50">
+          <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+          Desconectado
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Elementos del DOM
+    const retryBtn = document.getElementById('retry-btn');
+    const goHomeBtn = document.getElementById('go-home-btn');
+    const connectionStatus = document.getElementById('connection-status');
+
+    // Función para actualizar el estado de conexión
+    function updateConnectionStatus(isOnline) {
+      if (isOnline) {
+        connectionStatus.innerHTML = `
+          <span class="inline-flex items-center px-3 py-1 rounded-soft text-accent bg-accent/10">
+            <div class="w-2 h-2 bg-accent rounded-full mr-2"></div>
+            Conectado
+          </span>
+        `;
+        
+        // Auto-redirigir cuando se recupere la conexión
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      } else {
+        connectionStatus.innerHTML = `
+          <span class="inline-flex items-center px-3 py-1 rounded-soft text-red-600 bg-red-50">
+            <div class="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
+            Desconectado
+          </span>
+        `;
+      }
+    }
+
+    // Función para mostrar toast
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-accent' : type === 'error' ? 'bg-red-500' : 'bg-primary'} text-white px-4 py-3 rounded-soft shadow-soft-lg transform transition-all duration-200`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-10px) scale(0.95)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    // Event listeners
+    retryBtn.addEventListener('click', () => {
+      if (navigator.onLine) {
+        showToast('¡Conexión restaurada!', 'success');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1000);
+      } else {
+        showToast('Aún sin conexión. Intenta de nuevo.', 'error');
+      }
+    });
+
+    goHomeBtn.addEventListener('click', () => {
+      window.location.href = '/';
+    });
+
+    // Listeners para cambios de conexión
+    window.addEventListener('online', () => {
+      updateConnectionStatus(true);
+      showToast('¡Conexión restaurada!', 'success');
+    });
+
+    window.addEventListener('offline', () => {
+      updateConnectionStatus(false);
+    });
+
+    // Verificar estado inicial
+    updateConnectionStatus(navigator.onLine);
+
+    // Verificar conexión periódicamente
+    setInterval(() => {
+      // Intentar hacer una petición simple para verificar conectividad real
+      fetch('/favicon.svg', { 
+        method: 'HEAD',
+        cache: 'no-cache'
+      })
+      .then(() => {
+        if (!navigator.onLine) {
+          // Forzar evento online si la petición fue exitosa
+          updateConnectionStatus(true);
+        }
+      })
+      .catch(() => {
+        updateConnectionStatus(false);
+      });
+    }, 5000);
+  </script>
+</Layout>

@@ -1,0 +1,384 @@
+---
+import Layout from '@/layouts/Layout.astro';
+
+// En una app real, esto vendría de la API basado en el parámetro id
+const { id } = Astro.params;
+---
+
+<Layout title="Town - Producto">
+  <div class="min-h-screen bg-bg">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Breadcrumb -->
+      <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="flex items-center space-x-2 text-sm">
+          <li>
+            <a href="/" class="text-muted hover:text-primary transition-colors">Inicio</a>
+          </li>
+          <li>
+            <svg class="w-4 h-4 text-muted" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </li>
+          <li>
+            <span id="breadcrumb-category" class="text-muted">Producto</span>
+          </li>
+        </ol>
+      </nav>
+
+      <!-- Contenido del producto -->
+      <div id="product-content" class="hidden">
+        <div class="lg:grid lg:grid-cols-2 lg:gap-12">
+          <!-- Galería de imágenes -->
+          <div class="mb-8 lg:mb-0">
+            <div class="aspect-square bg-bg rounded-soft overflow-hidden border border-gray-200 mb-4">
+              <img
+                id="main-image"
+                class="w-full h-full object-cover"
+                alt=""
+              />
+            </div>
+            
+            <!-- Thumbnails (si hubiera múltiples imágenes) -->
+            <div id="thumbnails" class="hidden grid grid-cols-4 gap-2">
+              <!-- Se agregarían aquí las miniaturas -->
+            </div>
+          </div>
+
+          <!-- Información del producto -->
+          <div class="lg:pt-4">
+            <!-- Badge de stock -->
+            <div id="stock-badge" class="mb-4"></div>
+
+            <!-- Título -->
+            <h1 id="product-title" class="text-2xl lg:text-3xl font-bold text-ink mb-4"></h1>
+
+            <!-- Precio -->
+            <div class="mb-6">
+              <div class="flex items-baseline space-x-2">
+                <span id="product-price" class="text-3xl font-bold text-ink"></span>
+                <span class="text-sm text-muted">COP</span>
+              </div>
+            </div>
+
+            <!-- Información adicional -->
+            <div class="space-y-4 mb-8">
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                </svg>
+                <span class="text-sm text-muted">Categoría: <span id="product-category" class="font-medium text-ink"></span></span>
+              </div>
+              
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm text-muted">Disponibilidad: <span id="product-availability" class="font-medium"></span></span>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <svg class="w-5 h-5 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                </svg>
+                <span class="text-sm text-muted">Vendedor: <span id="product-seller" class="font-medium text-ink"></span></span>
+              </div>
+            </div>
+
+            <!-- Controles de cantidad -->
+            <div id="quantity-controls" class="mb-6">
+              <label for="quantity" class="block text-sm font-medium text-ink mb-2">
+                Cantidad
+              </label>
+              <div class="flex items-center space-x-3">
+                <button
+                  id="decrease-qty"
+                  class="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-soft flex items-center justify-center transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </button>
+                
+                <input
+                  type="number"
+                  id="quantity"
+                  min="1"
+                  value="1"
+                  class="w-20 text-center border border-gray-300 rounded-soft py-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+                
+                <button
+                  id="increase-qty"
+                  class="w-10 h-10 bg-gray-200 hover:bg-gray-300 rounded-soft flex items-center justify-center transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="space-y-3">
+              <button
+                id="add-to-cart-btn"
+                class="w-full bg-primary hover:bg-blue-700 text-primary-fg py-4 px-6 rounded-soft font-medium text-lg focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 transition-colors"
+              >
+                Agregar al carrito
+              </button>
+              
+              <button
+                id="whatsapp-btn"
+                class="w-full bg-accent hover:bg-green-600 text-white py-4 px-6 rounded-soft font-medium text-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.886 3.106"/>
+                </svg>
+                <span>Preguntar por WhatsApp</span>
+              </button>
+              
+              <button
+                id="share-btn"
+                class="w-full border border-gray-300 text-ink hover:bg-gray-50 py-3 px-6 rounded-soft font-medium focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors flex items-center justify-center space-x-2"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path>
+                </svg>
+                <span>Compartir producto</span>
+              </button>
+            </div>
+
+            <!-- Información del vendedor -->
+            <div class="mt-8 p-4 bg-gray-50 rounded-soft">
+              <h3 class="font-medium text-ink mb-2">Información del vendedor</h3>
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                  <span id="seller-initial" class="text-primary-fg font-medium"></span>
+                </div>
+                <div>
+                  <p id="seller-name" class="font-medium text-ink"></p>
+                  <p class="text-sm text-muted">Miembro desde 2023</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado de carga -->
+      <div id="loading-state" class="flex justify-center items-center py-20">
+        <div class="text-center">
+          <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p class="text-muted">Cargando producto...</p>
+        </div>
+      </div>
+
+      <!-- Estado de error -->
+      <div id="error-state" class="hidden text-center py-20">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-ink mb-2">Producto no encontrado</h2>
+        <p class="text-muted mb-6">El producto que buscas no existe o ha sido eliminado</p>
+        <a
+          href="/"
+          class="inline-flex items-center px-4 py-2 bg-primary hover:bg-blue-700 text-primary-fg rounded-soft font-medium transition-colors"
+        >
+          Volver al catálogo
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script define:vars={{ productId: id }}>
+    // Datos de ejemplo - en producción vendrían de la API
+    const mockProducts = {
+      '1': {
+        id: '1',
+        title: 'iPhone 14 Pro Max 256GB',
+        priceCents: 450000000,
+        stock: 3,
+        imageUrl: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&h=600&fit=crop',
+        category: 'Tecnología',
+        seller: 'TechStore Pro',
+        description: 'iPhone 14 Pro Max de 256GB en excelente estado. Incluye cargador original y caja.'
+      },
+      '2': {
+        id: '2',
+        title: 'MacBook Air M2 13" 512GB',
+        priceCents: 520000000,
+        stock: 1,
+        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop',
+        category: 'Tecnología',
+        seller: 'Apple Store',
+        description: 'MacBook Air con chip M2, pantalla de 13 pulgadas y 512GB de almacenamiento SSD.'
+      }
+    };
+
+    // Estado
+    let currentProduct = null;
+    let quantity = 1;
+
+    // Elementos del DOM
+    const elements = {
+      loadingState: document.getElementById('loading-state'),
+      errorState: document.getElementById('error-state'),
+      productContent: document.getElementById('product-content'),
+      mainImage: document.getElementById('main-image'),
+      stockBadge: document.getElementById('stock-badge'),
+      title: document.getElementById('product-title'),
+      price: document.getElementById('product-price'),
+      category: document.getElementById('product-category'),
+      availability: document.getElementById('product-availability'),
+      seller: document.getElementById('product-seller'),
+      sellerName: document.getElementById('seller-name'),
+      sellerInitial: document.getElementById('seller-initial'),
+      breadcrumbCategory: document.getElementById('breadcrumb-category'),
+      quantityInput: document.getElementById('quantity'),
+      decreaseBtn: document.getElementById('decrease-qty'),
+      increaseBtn: document.getElementById('increase-qty'),
+      addToCartBtn: document.getElementById('add-to-cart-btn'),
+      whatsappBtn: document.getElementById('whatsapp-btn'),
+      shareBtn: document.getElementById('share-btn'),
+      quantityControls: document.getElementById('quantity-controls')
+    };
+
+    // Utilidades
+    function formatPrice(cents) {
+      return (cents / 100).toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      });
+    }
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-accent' : type === 'error' ? 'bg-red-500' : 'bg-primary'} text-white px-4 py-3 rounded-soft shadow-soft-lg`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Funciones principales
+    function loadProduct() {
+      setTimeout(() => {
+        const product = mockProducts[productId];
+        
+        if (!product) {
+          elements.loadingState.style.display = 'none';
+          elements.errorState.classList.remove('hidden');
+          return;
+        }
+
+        currentProduct = product;
+        renderProduct(product);
+        
+        elements.loadingState.style.display = 'none';
+        elements.productContent.classList.remove('hidden');
+      }, 1000);
+    }
+
+    function renderProduct(product) {
+      // Imagen
+      elements.mainImage.src = product.imageUrl;
+      elements.mainImage.alt = product.title;
+
+      // Badge de stock
+      if (product.stock === 0) {
+        elements.stockBadge.innerHTML = '<span class="inline-flex items-center px-3 py-1 rounded-soft text-sm font-medium bg-red-100 text-red-600">Agotado</span>';
+      } else if (product.stock <= 5) {
+        elements.stockBadge.innerHTML = `<span class="inline-flex items-center px-3 py-1 rounded-soft text-sm font-medium bg-warm/10 text-warm">¡Últimas ${product.stock} unidades!</span>`;
+      } else {
+        elements.stockBadge.innerHTML = '<span class="inline-flex items-center px-3 py-1 rounded-soft text-sm font-medium bg-accent/10 text-accent">Disponible</span>';
+      }
+
+      // Información básica
+      elements.title.textContent = product.title;
+      elements.price.textContent = formatPrice(product.priceCents);
+      elements.category.textContent = product.category;
+      elements.seller.textContent = product.seller;
+      elements.sellerName.textContent = product.seller;
+      elements.sellerInitial.textContent = product.seller.charAt(0);
+      elements.breadcrumbCategory.textContent = product.category;
+
+      // Disponibilidad
+      elements.availability.textContent = product.stock > 0 ? `${product.stock} unidades` : 'Agotado';
+      elements.availability.className = product.stock > 0 ? 'font-medium text-accent' : 'font-medium text-red-600';
+
+      // Controles según disponibilidad
+      if (product.stock === 0) {
+        elements.quantityControls.style.display = 'none';
+        elements.addToCartBtn.disabled = true;
+        elements.addToCartBtn.textContent = 'Producto agotado';
+        elements.addToCartBtn.className = 'w-full bg-gray-200 text-muted py-4 px-6 rounded-soft font-medium text-lg cursor-not-allowed';
+      } else {
+        elements.quantityInput.max = product.stock;
+      }
+
+      // Actualizar título de página
+      document.title = `${product.title} - Town`;
+    }
+
+    // Event listeners
+    elements.decreaseBtn.addEventListener('click', () => {
+      if (quantity > 1) {
+        quantity--;
+        elements.quantityInput.value = quantity;
+      }
+    });
+
+    elements.increaseBtn.addEventListener('click', () => {
+      if (currentProduct && quantity < currentProduct.stock) {
+        quantity++;
+        elements.quantityInput.value = quantity;
+      }
+    });
+
+    elements.quantityInput.addEventListener('change', (e) => {
+      const value = parseInt(e.target.value);
+      if (value >= 1 && currentProduct && value <= currentProduct.stock) {
+        quantity = value;
+      } else {
+        elements.quantityInput.value = quantity;
+      }
+    });
+
+    elements.addToCartBtn.addEventListener('click', () => {
+      if (currentProduct) {
+        // En una app real, esto se conectaría con el estado global del carrito
+        showToast(`${quantity} ${currentProduct.title} agregado${quantity > 1 ? 's' : ''} al carrito`, 'success');
+      }
+    });
+
+    elements.whatsappBtn.addEventListener('click', () => {
+      if (currentProduct) {
+        const message = encodeURIComponent(
+          `Hola! Me interesa el producto "${currentProduct.title}" por ${formatPrice(currentProduct.priceCents)}. ¿Está disponible?`
+        );
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+      }
+    });
+
+    elements.shareBtn.addEventListener('click', () => {
+      if (navigator.share && currentProduct) {
+        navigator.share({
+          title: currentProduct.title,
+          text: `Mira este producto: ${currentProduct.title} por ${formatPrice(currentProduct.priceCents)}`,
+          url: window.location.href
+        });
+      } else {
+        // Fallback: copiar URL al clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          showToast('Enlace copiado al portapapeles', 'success');
+        });
+      }
+    });
+
+    // Inicializar
+    loadProduct();
+  </script>
+</Layout>

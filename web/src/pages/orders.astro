@@ -1,0 +1,482 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Town - Mis Pedidos">
+  <div class="min-h-screen bg-bg">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-2xl lg:text-3xl font-bold text-ink mb-2">
+          Mis Pedidos
+        </h1>
+        <p class="text-muted">
+          Historial de tus pedidos y compras realizadas
+        </p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-primary/10 rounded-soft flex items-center justify-center">
+                <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6a2 2 0 114 0v1H8V6zm0 3a1 1 0 012 0 1 1 0 11-2 0z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-muted">Total Pedidos</p>
+              <p class="text-2xl font-bold text-ink" id="total-orders">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-accent/10 rounded-soft flex items-center justify-center">
+                <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-muted">Completados</p>
+              <p class="text-2xl font-bold text-ink" id="completed-orders">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 bg-warm/10 rounded-soft flex items-center justify-center">
+                <svg class="w-5 h-5 text-warm" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="ml-4">
+              <p class="text-sm font-medium text-muted">En Proceso</p>
+              <p class="text-2xl font-bold text-ink" id="pending-orders">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-4 mb-6">
+        <div class="flex flex-col sm:flex-row gap-4">
+          <div class="flex-1">
+            <label for="status-filter" class="block text-sm font-medium text-ink mb-2">
+              Estado
+            </label>
+            <select
+              id="status-filter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+            >
+              <option value="">Todos los estados</option>
+              <option value="pending">En proceso</option>
+              <option value="completed">Completado</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+          </div>
+          
+          <div class="flex-1">
+            <label for="date-filter" class="block text-sm font-medium text-ink mb-2">
+              Período
+            </label>
+            <select
+              id="date-filter"
+              class="w-full px-4 py-2 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+            >
+              <option value="">Todo el tiempo</option>
+              <option value="today">Hoy</option>
+              <option value="week">Esta semana</option>
+              <option value="month">Este mes</option>
+            </select>
+          </div>
+          
+          <div class="flex items-end">
+            <button
+              id="clear-filters"
+              class="px-4 py-2 border border-gray-300 text-ink rounded-soft hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
+            >
+              Limpiar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de pedidos -->
+      <div class="space-y-4" id="orders-list">
+        <!-- Los pedidos se cargarán aquí -->
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="empty-orders" class="text-center py-12">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-muted" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6a2 2 0 114 0v1H8V6zm0 3a1 1 0 012 0 1 1 0 11-2 0z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-ink mb-2">No tienes pedidos aún</h3>
+        <p class="text-muted mb-4">Cuando realices tu primera compra aparecerá aquí</p>
+        <a
+          href="/"
+          class="inline-flex items-center px-4 py-2 bg-primary hover:bg-blue-700 text-primary-fg rounded-soft font-medium transition-colors"
+        >
+          Explorar productos
+        </a>
+      </div>
+
+      <!-- Estado de carga -->
+      <div id="loading-orders" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos de ejemplo - en producción vendrían de la API
+    const mockOrders = [
+      {
+        id: 'ORD-001',
+        date: '2024-01-15T10:30:00Z',
+        status: 'completed',
+        totalCents: 85000000, // $850,000
+        items: [
+          {
+            title: 'Nike Air Force 1 Blancas',
+            quantity: 2,
+            priceCents: 35000000,
+            imageUrl: 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=100&h=100&fit=crop'
+          },
+          {
+            title: 'Libro "El Arte de la Guerra"',
+            quantity: 1,
+            priceCents: 4500000,
+            imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=100&h=100&fit=crop'
+          }
+        ],
+        seller: 'Juan Pérez',
+        deliveryAddress: 'Calle 123 #45-67, Bogotá'
+      },
+      {
+        id: 'ORD-002',
+        date: '2024-01-10T15:45:00Z',
+        status: 'pending',
+        totalCents: 28000000, // $280,000
+        items: [
+          {
+            title: 'Cafetera Espresso Delonghi',
+            quantity: 1,
+            priceCents: 28000000,
+            imageUrl: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=100&h=100&fit=crop'
+          }
+        ],
+        seller: 'María García',
+        deliveryAddress: 'Carrera 7 #12-34, Medellín'
+      },
+      {
+        id: 'ORD-003',
+        date: '2024-01-05T09:15:00Z',
+        status: 'cancelled',
+        totalCents: 520000000, // $5,200,000
+        items: [
+          {
+            title: 'MacBook Air M2 13" 512GB',
+            quantity: 1,
+            priceCents: 520000000,
+            imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=100&h=100&fit=crop'
+          }
+        ],
+        seller: 'TechStore',
+        deliveryAddress: 'Avenida 68 #23-45, Cali'
+      }
+    ];
+
+    // Estado
+    let filteredOrders = [...mockOrders];
+
+    // Elementos del DOM
+    const elements = {
+      ordersList: document.getElementById('orders-list'),
+      emptyOrders: document.getElementById('empty-orders'),
+      loadingOrders: document.getElementById('loading-orders'),
+      statusFilter: document.getElementById('status-filter'),
+      dateFilter: document.getElementById('date-filter'),
+      clearFilters: document.getElementById('clear-filters'),
+      totalOrders: document.getElementById('total-orders'),
+      completedOrders: document.getElementById('completed-orders'),
+      pendingOrders: document.getElementById('pending-orders')
+    };
+
+    // Utilidades
+    function formatPrice(cents) {
+      return (cents / 100).toLocaleString('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0
+      });
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-CO', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function getStatusInfo(status) {
+      switch (status) {
+        case 'completed':
+          return {
+            label: 'Completado',
+            class: 'bg-accent/10 text-accent',
+            icon: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+            </svg>`
+          };
+        case 'pending':
+          return {
+            label: 'En proceso',
+            class: 'bg-warm/10 text-warm',
+            icon: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+            </svg>`
+          };
+        case 'cancelled':
+          return {
+            label: 'Cancelado',
+            class: 'bg-red-100 text-red-600',
+            icon: `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>`
+          };
+        default:
+          return {
+            label: 'Desconocido',
+            class: 'bg-gray-100 text-gray-600',
+            icon: ''
+          };
+      }
+    }
+
+    // Funciones principales
+    function updateStats() {
+      const total = mockOrders.length;
+      const completed = mockOrders.filter(order => order.status === 'completed').length;
+      const pending = mockOrders.filter(order => order.status === 'pending').length;
+
+      elements.totalOrders.textContent = total;
+      elements.completedOrders.textContent = completed;
+      elements.pendingOrders.textContent = pending;
+    }
+
+    function renderOrders(orders) {
+      elements.loadingOrders.style.display = 'none';
+
+      if (orders.length === 0) {
+        elements.ordersList.innerHTML = '';
+        elements.emptyOrders.style.display = 'block';
+        return;
+      }
+
+      elements.emptyOrders.style.display = 'none';
+
+      elements.ordersList.innerHTML = orders.map(order => {
+        const statusInfo = getStatusInfo(order.status);
+        
+        return `
+          <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+            <!-- Header del pedido -->
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center space-x-4">
+                <div>
+                  <h3 class="text-lg font-semibold text-ink">${order.id}</h3>
+                  <p class="text-sm text-muted">${formatDate(order.date)}</p>
+                </div>
+              </div>
+              
+              <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-soft text-sm font-medium ${statusInfo.class}">
+                  ${statusInfo.icon}
+                  <span class="ml-1">${statusInfo.label}</span>
+                </span>
+                <div class="text-right">
+                  <p class="text-lg font-bold text-ink">${formatPrice(order.totalCents)}</p>
+                  <p class="text-sm text-muted">${order.items.length} producto${order.items.length > 1 ? 's' : ''}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Items del pedido -->
+            <div class="border-t border-gray-200 pt-4">
+              <div class="space-y-3">
+                ${order.items.map(item => `
+                  <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                      <div class="w-12 h-12 bg-bg rounded-soft overflow-hidden">
+                        <img src="${item.imageUrl}" alt="${item.title}" class="w-full h-full object-cover" />
+                      </div>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h4 class="text-sm font-medium text-ink truncate">${item.title}</h4>
+                      <p class="text-sm text-muted">Cantidad: ${item.quantity}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-medium text-ink">${formatPrice(item.priceCents * item.quantity)}</p>
+                      <p class="text-xs text-muted">${formatPrice(item.priceCents)} c/u</p>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Info adicional -->
+            <div class="border-t border-gray-200 pt-4 mt-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p class="text-muted mb-1">Vendedor</p>
+                  <p class="font-medium text-ink">${order.seller}</p>
+                </div>
+                <div>
+                  <p class="text-muted mb-1">Dirección de entrega</p>
+                  <p class="font-medium text-ink">${order.deliveryAddress}</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="border-t border-gray-200 pt-4 mt-4">
+              <div class="flex flex-wrap gap-2">
+                ${order.status === 'pending' ? `
+                  <button
+                    onclick="contactSeller('${order.id}')"
+                    class="flex-1 sm:flex-none px-4 py-2 bg-accent hover:bg-green-600 text-white rounded-soft text-sm font-medium transition-colors"
+                  >
+                    Contactar vendedor
+                  </button>
+                ` : ''}
+                
+                ${order.status === 'completed' ? `
+                  <button
+                    onclick="reorderItems('${order.id}')"
+                    class="flex-1 sm:flex-none px-4 py-2 bg-primary hover:bg-blue-700 text-primary-fg rounded-soft text-sm font-medium transition-colors"
+                  >
+                    Volver a pedir
+                  </button>
+                ` : ''}
+                
+                <button
+                  onclick="viewOrderDetails('${order.id}')"
+                  class="flex-1 sm:flex-none px-4 py-2 border border-gray-300 text-ink hover:bg-gray-50 rounded-soft text-sm font-medium transition-colors"
+                >
+                  Ver detalles
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterOrders() {
+      const statusFilter = elements.statusFilter.value;
+      const dateFilter = elements.dateFilter.value;
+
+      let filtered = [...mockOrders];
+
+      // Filtrar por estado
+      if (statusFilter) {
+        filtered = filtered.filter(order => order.status === statusFilter);
+      }
+
+      // Filtrar por fecha
+      if (dateFilter) {
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        
+        filtered = filtered.filter(order => {
+          const orderDate = new Date(order.date);
+          
+          switch (dateFilter) {
+            case 'today':
+              return orderDate >= today;
+            case 'week':
+              const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+              return orderDate >= weekAgo;
+            case 'month':
+              const monthAgo = new Date(today.getFullYear(), today.getMonth() - 1, today.getDate());
+              return orderDate >= monthAgo;
+            default:
+              return true;
+          }
+        });
+      }
+
+      filteredOrders = filtered;
+      renderOrders(filteredOrders);
+    }
+
+    // Funciones de acción
+    window.contactSeller = (orderId) => {
+      const order = mockOrders.find(o => o.id === orderId);
+      if (order) {
+        const message = encodeURIComponent(
+          `Hola! Me gustaría consultar sobre el estado de mi pedido ${orderId}. ¡Gracias!`
+        );
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+      }
+    };
+
+    window.reorderItems = (orderId) => {
+      const order = mockOrders.find(o => o.id === orderId);
+      if (order) {
+        // En una app real, esto agregaría los items al carrito
+        const itemNames = order.items.map(item => item.title).join(', ');
+        showToast(`Items agregados al carrito: ${itemNames}`, 'success');
+      }
+    };
+
+    window.viewOrderDetails = (orderId) => {
+      // En una app real, esto navegaría a una página de detalles
+      showToast(`Ver detalles del pedido ${orderId}`, 'info');
+    };
+
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-accent' : type === 'error' ? 'bg-red-500' : 'bg-primary'} text-white px-4 py-3 rounded-soft shadow-soft-lg transform transition-all duration-200`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-10px) scale(0.95)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    // Event listeners
+    elements.statusFilter.addEventListener('change', filterOrders);
+    elements.dateFilter.addEventListener('change', filterOrders);
+    elements.clearFilters.addEventListener('click', () => {
+      elements.statusFilter.value = '';
+      elements.dateFilter.value = '';
+      filterOrders();
+    });
+
+    // Inicializar
+    updateStats();
+    setTimeout(() => {
+      renderOrders(mockOrders);
+    }, 1000); // Simular carga
+  </script>
+</Layout>
