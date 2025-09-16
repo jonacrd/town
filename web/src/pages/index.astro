@@ -1,10 +1,334 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import Hero from '@/components/Hero.tsx';
 ---
 
-<Layout title="Town - Inicio">
-  <main>
-    <Hero client:load />
-  </main>
+<Layout title="Town - Explorar productos">
+  <div class="min-h-screen bg-bg">
+    <!-- Filtros de búsqueda -->
+    <div class="bg-surface border-b border-gray-200 sticky top-0 lg:top-16 z-10">
+      <div class="p-4 space-y-4">
+        <!-- Barra de búsqueda -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-5 w-5 text-muted" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Buscar productos..."
+            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+          />
+        </div>
+
+        <!-- Filtros -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <select id="category-filter" class="w-full px-4 py-2 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+            <option value="">Todas las categorías</option>
+            <option value="Tecnología">Tecnología</option>
+            <option value="Ropa">Ropa</option>
+            <option value="Hogar">Hogar</option>
+            <option value="Deportes">Deportes</option>
+            <option value="Libros">Libros</option>
+          </select>
+
+          <select id="sort-filter" class="w-full px-4 py-2 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors">
+            <option value="newest">Más recientes</option>
+            <option value="price-asc">Precio: menor a mayor</option>
+            <option value="price-desc">Precio: mayor a menor</option>
+            <option value="name-asc">Nombre: A-Z</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl lg:text-3xl font-bold text-ink mb-2">
+          Descubre productos increíbles
+        </h1>
+        <p class="text-muted">
+          Encuentra lo que necesitas en nuestra comunidad de vendedores locales
+        </p>
+      </div>
+
+      <!-- Grid de productos -->
+      <div id="products-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
+        <!-- Los productos se cargarán aquí dinámicamente -->
+      </div>
+
+      <!-- Estado de carga -->
+      <div id="loading-state" class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="empty-state" class="hidden text-center py-12">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-muted" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-ink mb-2">No se encontraron productos</h3>
+        <p class="text-muted">Intenta ajustar tus filtros de búsqueda</p>
+      </div>
+    </div>
+
+    <!-- Botón flotante del carrito (móvil) -->
+    <button 
+      id="cart-fab"
+      class="lg:hidden fixed bottom-20 right-4 w-14 h-14 bg-primary hover:bg-blue-700 text-primary-fg rounded-full shadow-soft-lg flex items-center justify-center transition-all duration-200 z-30"
+      style="display: none;"
+    >
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6a2 2 0 114 0v1H8V6zm0 3a1 1 0 012 0 1 1 0 11-2 0z" clip-rule="evenodd" />
+      </svg>
+      <span id="cart-count" class="absolute -top-2 -right-2 bg-accent text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium"></span>
+    </button>
+  </div>
+
+  <script>
+    import { api, formatPrice, createWhatsAppLink, createProductWhatsAppText } from '../utils/fetcher.ts';
+
+    // Estado de la aplicación
+    let cartItems = [];
+    let allProducts = [];
+    let isLoading = false;
+
+    // Elementos del DOM
+    const elements = {
+      grid: document.getElementById('products-grid'),
+      loading: document.getElementById('loading-state'),
+      empty: document.getElementById('empty-state'),
+      cartFab: document.getElementById('cart-fab'),
+      cartCount: document.getElementById('cart-count'),
+      search: document.getElementById('search-input'),
+      category: document.getElementById('category-filter'),
+      sort: document.getElementById('sort-filter')
+    };
+
+    // Función para mostrar toast
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-accent' : type === 'error' ? 'bg-red-500' : 'bg-primary'} text-white px-4 py-3 rounded-soft shadow-soft-lg transform transition-all duration-200`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-10px) scale(0.95)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    // Función para cargar productos desde la API
+    async function loadProducts(filters = {}) {
+      if (isLoading) return;
+      
+      isLoading = true;
+      elements.loading.style.display = 'flex';
+      elements.empty.classList.add('hidden');
+
+      try {
+        const response = await api.products.list({
+          query: filters.query || undefined,
+          category: filters.category || undefined,
+          active: true,
+          limit: 50
+        });
+
+        if (response.success && response.data) {
+          allProducts = response.data;
+          renderProducts(response.data, filters.sort);
+        } else {
+          throw new Error(response.error || 'Error al cargar productos');
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        showToast('Error al cargar productos. Verifica tu conexión.', 'error');
+        elements.loading.style.display = 'none';
+        elements.empty.classList.remove('hidden');
+        elements.empty.innerHTML = `
+          <div class="text-center py-12">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-ink mb-2">Error al cargar productos</h3>
+            <p class="text-muted mb-4">Verifica tu conexión a internet</p>
+            <button onclick="loadProducts()" class="bg-primary hover:bg-blue-700 text-primary-fg px-4 py-2 rounded-soft font-medium transition-colors">
+              Reintentar
+            </button>
+          </div>
+        `;
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    // Función para renderizar productos
+    function renderProducts(products, sortBy = 'newest') {
+      elements.loading.style.display = 'none';
+
+      if (!products || products.length === 0) {
+        elements.grid.innerHTML = '';
+        elements.empty.classList.remove('hidden');
+        return;
+      }
+
+      elements.empty.classList.add('hidden');
+
+      // Ordenar productos
+      const sortedProducts = [...products].sort((a, b) => {
+        switch (sortBy) {
+          case 'price-asc': return a.priceCents - b.priceCents;
+          case 'price-desc': return b.priceCents - a.priceCents;
+          case 'name-asc': return a.title.localeCompare(b.title);
+          default: return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+      });
+
+      elements.grid.innerHTML = sortedProducts.map(product => `
+        <div class="bg-surface rounded-soft shadow-soft overflow-hidden border border-gray-100 hover:shadow-soft-lg transition-shadow">
+          <div class="aspect-square bg-bg relative">
+            ${product.imageUrl ? `
+              <img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover" loading="lazy" />
+            ` : `
+              <div class="w-full h-full flex items-center justify-center">
+                <div class="w-16 h-16 bg-gray-200 rounded-soft flex items-center justify-center">
+                  <svg class="w-8 h-8 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+              </div>
+            `}
+            
+            ${product.stock === 0 ? `
+              <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-soft text-xs font-medium">
+                Agotado
+              </div>
+            ` : product.stock <= 5 ? `
+              <div class="absolute top-2 right-2 bg-warm text-white px-2 py-1 rounded-soft text-xs font-medium">
+                ¡Últimas ${product.stock}!
+              </div>
+            ` : ''}
+          </div>
+          <div class="p-4">
+            <h3 class="font-semibold text-ink text-sm mb-2 line-clamp-2" title="${product.title}">
+              ${product.title}
+            </h3>
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-lg font-bold text-ink">${formatPrice(product.priceCents)}</span>
+              <span class="text-xs text-muted">Stock: ${product.stock}</span>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="handleWhatsApp('${product.id}')" class="flex-1 bg-accent hover:bg-green-600 text-white py-2 px-3 rounded-soft text-sm font-medium transition-colors">
+                WhatsApp
+              </button>
+              ${product.stock > 0 ? `
+                <button onclick="addToCart('${product.id}')" class="flex-1 bg-primary hover:bg-blue-700 text-primary-fg py-2 px-3 rounded-soft text-sm font-medium transition-colors">
+                  Agregar
+                </button>
+              ` : `
+                <button disabled class="flex-1 bg-gray-200 text-muted py-2 px-3 rounded-soft text-sm font-medium cursor-not-allowed">
+                  Agotado
+                </button>
+              `}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Función con debounce para filtros
+    function debounceFilter() {
+      const searchTerm = elements.search.value.trim();
+      const selectedCategory = elements.category.value;
+      const sortBy = elements.sort.value;
+
+      // Si hay filtros, aplicar localmente sobre allProducts
+      let filtered = allProducts;
+
+      if (searchTerm) {
+        filtered = filtered.filter(product => 
+          product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+      }
+
+      if (selectedCategory) {
+        filtered = filtered.filter(product => product.category === selectedCategory);
+      }
+
+      renderProducts(filtered, sortBy);
+    }
+
+    // Función para manejar WhatsApp
+    window.handleWhatsApp = (productId) => {
+      const product = allProducts.find(p => p.id === productId);
+      if (product && product.seller) {
+        const whatsappText = createProductWhatsAppText(product);
+        const whatsappUrl = createWhatsAppLink(product.seller.user.phone, whatsappText);
+        window.open(whatsappUrl, '_blank');
+      } else {
+        showToast('Error al obtener información del vendedor', 'error');
+      }
+    };
+
+    // Función para agregar al carrito
+    window.addToCart = (productId) => {
+      const product = allProducts.find(p => p.id === productId);
+      if (!product) return;
+
+      const existingItem = cartItems.find(item => item.id === productId);
+      if (existingItem) {
+        existingItem.quantity += 1;
+      } else {
+        cartItems.push({
+          id: product.id,
+          title: product.title,
+          priceCents: product.priceCents,
+          quantity: 1,
+          imageUrl: product.imageUrl
+        });
+      }
+
+      updateCartUI();
+      showToast('Producto agregado al carrito', 'success');
+    };
+
+    // Función para actualizar UI del carrito
+    function updateCartUI() {
+      const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+      
+      if (totalItems > 0) {
+        elements.cartFab.style.display = 'flex';
+        elements.cartCount.textContent = totalItems;
+      } else {
+        elements.cartFab.style.display = 'none';
+      }
+    }
+
+    // Event listeners con debounce
+    let searchTimeout;
+    elements.search.addEventListener('input', () => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(debounceFilter, 300);
+    });
+
+    elements.category.addEventListener('change', debounceFilter);
+    elements.sort.addEventListener('change', debounceFilter);
+
+    elements.cartFab.addEventListener('click', () => {
+      console.log('Abrir carrito con items:', cartItems);
+      showToast('Funcionalidad del carrito próximamente', 'info');
+    });
+
+    // Inicializar - cargar productos al inicio
+    loadProducts();
+  </script>
 </Layout>

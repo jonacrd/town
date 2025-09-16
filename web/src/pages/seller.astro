@@ -1,0 +1,520 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Town - Panel de Vendedor">
+  <div class="min-h-screen bg-bg">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <!-- Header -->
+      <div class="mb-8">
+        <h1 class="text-2xl lg:text-3xl font-bold text-ink mb-2">
+          Panel de Vendedor
+        </h1>
+        <p class="text-muted">
+          Publica y gestiona tus productos de manera fácil y rápida
+        </p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="mb-6">
+        <nav class="flex space-x-8 border-b border-gray-200">
+          <button
+            id="tab-publish"
+            class="py-2 px-1 border-b-2 font-medium text-sm transition-colors tab-button active"
+          >
+            Publicar Producto
+          </button>
+          <button
+            id="tab-manage"
+            class="py-2 px-1 border-b-2 font-medium text-sm transition-colors tab-button"
+          >
+            Mis Productos
+          </button>
+        </nav>
+      </div>
+
+      <!-- Tab Content: Publicar Producto -->
+      <div id="publish-content" class="tab-content">
+        <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+          <form id="product-form" class="space-y-6">
+            <!-- Título -->
+            <div>
+              <label for="title" class="block text-sm font-medium text-ink mb-2">
+                Título del producto *
+              </label>
+              <input
+                type="text"
+                id="title"
+                required
+                class="w-full px-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                placeholder="Ej: iPhone 14 Pro Max 256GB"
+                maxlength="100"
+              />
+              <div id="title-error" class="mt-1 text-sm text-red-600 hidden"></div>
+            </div>
+
+            <!-- Precio -->
+            <div>
+              <label for="price" class="block text-sm font-medium text-ink mb-2">
+                Precio (COP) *
+              </label>
+              <div class="relative">
+                <span class="absolute left-3 top-3 text-muted">$</span>
+                <input
+                  type="number"
+                  id="price"
+                  required
+                  min="1"
+                  step="1000"
+                  class="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                  placeholder="0"
+                />
+              </div>
+              <div id="price-error" class="mt-1 text-sm text-red-600 hidden"></div>
+            </div>
+
+            <!-- Stock y Categoría -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="stock" class="block text-sm font-medium text-ink mb-2">
+                  Stock disponible *
+                </label>
+                <input
+                  type="number"
+                  id="stock"
+                  required
+                  min="0"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                  value="1"
+                />
+              </div>
+
+              <div>
+                <label for="category" class="block text-sm font-medium text-ink mb-2">
+                  Categoría
+                </label>
+                <select
+                  id="category"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                >
+                  <option value="Tecnología">Tecnología</option>
+                  <option value="Ropa">Ropa</option>
+                  <option value="Hogar">Hogar</option>
+                  <option value="Deportes">Deportes</option>
+                  <option value="Libros">Libros</option>
+                  <option value="Belleza">Belleza</option>
+                  <option value="Comida">Comida</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- URL de imagen -->
+            <div>
+              <label for="imageUrl" class="block text-sm font-medium text-ink mb-2">
+                URL de imagen (opcional)
+              </label>
+              <input
+                type="url"
+                id="imageUrl"
+                class="w-full px-4 py-3 border border-gray-300 rounded-soft focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors"
+                placeholder="https://ejemplo.com/imagen.jpg"
+              />
+              <div id="image-error" class="mt-1 text-sm text-red-600 hidden"></div>
+              
+              <!-- Preview de imagen -->
+              <div id="image-preview" class="mt-3 hidden">
+                <p class="text-sm text-muted mb-2">Vista previa:</p>
+                <div class="w-32 h-32 bg-bg border border-gray-200 rounded-soft overflow-hidden">
+                  <img id="preview-img" class="w-full h-full object-cover" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex gap-3 pt-4">
+              <button
+                type="button"
+                id="clear-form"
+                class="flex-1 px-6 py-3 border border-gray-300 text-ink rounded-soft hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 transition-colors"
+              >
+                Limpiar
+              </button>
+              
+              <button
+                type="submit"
+                id="submit-btn"
+                class="flex-1 bg-primary hover:bg-blue-700 text-primary-fg py-3 px-6 rounded-soft font-medium focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 transition-colors"
+              >
+                Publicar Producto
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Tab Content: Mis Productos -->
+      <div id="manage-content" class="tab-content hidden">
+        <div class="space-y-6">
+          <!-- Stats -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-primary/10 rounded-soft flex items-center justify-center">
+                    <svg class="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-muted">Total Productos</p>
+                  <p class="text-2xl font-bold text-ink" id="total-products">0</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-accent/10 rounded-soft flex items-center justify-center">
+                    <svg class="w-5 h-5 text-accent" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-muted">Disponibles</p>
+                  <p class="text-2xl font-bold text-ink" id="available-products">0</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-surface rounded-soft shadow-soft border border-gray-100 p-6">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 bg-red-100 rounded-soft flex items-center justify-center">
+                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                </div>
+                <div class="ml-4">
+                  <p class="text-sm font-medium text-muted">Agotados</p>
+                  <p class="text-2xl font-bold text-ink" id="sold-out-products">0</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lista de productos -->
+          <div class="bg-surface rounded-soft shadow-soft border border-gray-100">
+            <div class="px-6 py-4 border-b border-gray-200">
+              <h3 class="text-lg font-medium text-ink">Mis Productos</h3>
+            </div>
+            <div id="products-list" class="divide-y divide-gray-200">
+              <!-- Los productos se cargarán aquí -->
+            </div>
+            
+            <!-- Estado vacío -->
+            <div id="empty-products" class="px-6 py-12 text-center">
+              <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-ink mb-2">No tienes productos publicados</h3>
+              <p class="text-muted mb-4">Comienza publicando tu primer producto</p>
+              <button
+                onclick="switchTab('publish')"
+                class="bg-primary hover:bg-blue-700 text-primary-fg px-4 py-2 rounded-soft font-medium transition-colors"
+              >
+                Publicar Producto
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container"></div>
+  </div>
+
+  <script>
+    import { api, formatPrice, createWhatsAppLink } from '../utils/fetcher.ts';
+
+    // Estado
+    let userProducts = [];
+    let currentTab = 'publish';
+    let isSubmitting = false;
+
+    // Elementos
+    const elements = {
+      form: document.getElementById('product-form'),
+      title: document.getElementById('title'),
+      price: document.getElementById('price'),
+      stock: document.getElementById('stock'),
+      category: document.getElementById('category'),
+      imageUrl: document.getElementById('imageUrl'),
+      imagePreview: document.getElementById('image-preview'),
+      previewImg: document.getElementById('preview-img'),
+      submitBtn: document.getElementById('submit-btn'),
+      productsList: document.getElementById('products-list'),
+      emptyProducts: document.getElementById('empty-products'),
+      totalProducts: document.getElementById('total-products'),
+      availableProducts: document.getElementById('available-products'),
+      soldOutProducts: document.getElementById('sold-out-products')
+    };
+
+    // Utilidades
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `fixed top-4 right-4 z-50 ${type === 'success' ? 'bg-accent' : type === 'error' ? 'bg-red-500' : 'bg-primary'} text-white px-4 py-3 rounded-soft shadow-soft-lg transform transition-all duration-200`;
+      toast.textContent = message;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-10px) scale(0.95)';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    // Función para cargar productos del vendedor
+    async function loadUserProducts() {
+      try {
+        const response = await api.products.list({ active: true, limit: 100 });
+        if (response.success && response.data) {
+          userProducts = response.data;
+          updateProductsList();
+          updateStats();
+        }
+      } catch (error) {
+        console.error('Error loading user products:', error);
+        showToast('Error al cargar productos', 'error');
+      }
+    }
+
+    // Tabs
+    function switchTab(tab) {
+      currentTab = tab;
+      
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active', 'border-primary', 'text-primary');
+        btn.classList.add('border-transparent', 'text-muted', 'hover:text-ink');
+      });
+      
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.add('hidden');
+      });
+      
+      const activeBtn = document.getElementById(`tab-${tab}`);
+      const activeContent = document.getElementById(`${tab}-content`);
+      
+      activeBtn.classList.add('active', 'border-primary', 'text-primary');
+      activeBtn.classList.remove('border-transparent', 'text-muted', 'hover:text-ink');
+      activeContent.classList.remove('hidden');
+      
+      if (tab === 'manage') {
+        updateProductsList();
+        updateStats();
+      }
+    }
+
+    // Preview de imagen
+    elements.imageUrl.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        elements.previewImg.src = url;
+        elements.previewImg.onload = () => {
+          elements.imagePreview.classList.remove('hidden');
+        };
+        elements.previewImg.onerror = () => {
+          elements.imagePreview.classList.add('hidden');
+        };
+      } else {
+        elements.imagePreview.classList.add('hidden');
+      }
+    });
+
+    // Formulario
+    elements.form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      if (isSubmitting) return;
+
+      const formData = {
+        title: elements.title.value.trim(),
+        priceCents: Math.round(parseFloat(elements.price.value) * 100) || 0,
+        stock: parseInt(elements.stock.value) || 0,
+        category: elements.category.value,
+        imageUrl: elements.imageUrl.value.trim() || undefined,
+        description: `${elements.title.value.trim()} - Producto de calidad disponible en nuestra tienda.`
+      };
+
+      // Validación
+      if (!formData.title || formData.title.length < 3) {
+        showToast('El título debe tener al menos 3 caracteres', 'error');
+        return;
+      }
+      
+      if (formData.priceCents <= 0) {
+        showToast('El precio debe ser mayor a 0', 'error');
+        return;
+      }
+
+      if (formData.stock < 0) {
+        showToast('El stock no puede ser negativo', 'error');
+        return;
+      }
+
+      // Mostrar estado de carga
+      isSubmitting = true;
+      elements.submitBtn.disabled = true;
+      elements.submitBtn.textContent = 'Publicando...';
+
+      try {
+        const response = await api.products.create(formData);
+        
+        if (response.success && response.data) {
+          // Reset form
+          elements.form.reset();
+          elements.imagePreview.classList.add('hidden');
+          
+          // Recargar productos
+          await loadUserProducts();
+          
+          // Mostrar toast con opción de compartir
+          showToastWithShare(response.data);
+          
+          showToast('¡Producto publicado exitosamente!', 'success');
+        } else {
+          throw new Error(response.error || 'Error al crear producto');
+        }
+      } catch (error) {
+        console.error('Error creating product:', error);
+        let errorMessage = 'Error al publicar producto';
+        
+        if (error.status === 400) {
+          errorMessage = 'Datos inválidos. Revisa los campos.';
+        } else if (error.status === 0) {
+          errorMessage = 'Error de conexión. Verifica tu internet.';
+        }
+        
+        showToast(errorMessage, 'error');
+      } finally {
+        isSubmitting = false;
+        elements.submitBtn.disabled = false;
+        elements.submitBtn.textContent = 'Publicar Producto';
+      }
+    });
+
+    function showToastWithShare(product) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 z-50 bg-accent text-white p-4 rounded-soft shadow-soft-lg max-w-sm';
+      toast.innerHTML = `
+        <div class="flex items-start gap-3">
+          <svg class="w-5 h-5 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium">¡Producto publicado!</p>
+            <p class="text-sm opacity-90 mt-1">${product.title}</p>
+            <button
+              onclick="shareProduct('${product.id}', '${product.title}', ${product.priceCents}, ${product.stock})"
+              class="mt-2 text-sm font-semibold underline hover:no-underline"
+            >
+              Compartir por WhatsApp
+            </button>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="p-1 hover:bg-black hover:bg-opacity-20 rounded">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+      
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 10000);
+    }
+
+    window.shareProduct = (productId, title, priceCents, stock) => {
+      // Crear mensaje de WhatsApp con formato específico
+      const price = formatPrice(priceCents);
+      const whatsappText = `🎉 ¡Nuevo producto disponible!\n\n📱 *${title}*\n💰 ${price}\n📦 Stock: ${stock} unidades\n\n¡Pregúntame por más detalles!`;
+      
+      // Usar número genérico para compartir (en una app real sería el número del vendedor)
+      const whatsappUrl = createWhatsAppLink('+56900000000', whatsappText);
+      window.open(whatsappUrl, '_blank');
+    };
+
+    function updateStats() {
+      const total = userProducts.length;
+      const available = userProducts.filter(p => p.stock > 0).length;
+      const soldOut = userProducts.filter(p => p.stock === 0).length;
+      
+      elements.totalProducts.textContent = total;
+      elements.availableProducts.textContent = available;
+      elements.soldOutProducts.textContent = soldOut;
+    }
+
+    function updateProductsList() {
+      if (userProducts.length === 0) {
+        elements.productsList.innerHTML = '';
+        elements.emptyProducts.style.display = 'block';
+        return;
+      }
+      
+      elements.emptyProducts.style.display = 'none';
+      elements.productsList.innerHTML = userProducts.map(product => `
+        <div class="px-6 py-4 flex items-center space-x-4">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 bg-bg rounded-soft overflow-hidden">
+              ${product.imageUrl ? 
+                `<img src="${product.imageUrl}" alt="${product.title}" class="w-full h-full object-cover" />` :
+                `<div class="w-full h-full flex items-center justify-center">
+                  <svg class="w-6 h-6 text-muted" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                  </svg>
+                </div>`
+              }
+            </div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-medium text-ink truncate">${product.title}</h4>
+            <p class="text-sm text-muted">${product.category} • ${formatPrice(product.priceCents)}</p>
+            <div class="flex items-center mt-1">
+              <span class="text-xs ${product.stock > 0 ? 'text-accent' : 'text-red-600'}">
+                ${product.stock > 0 ? `${product.stock} disponibles` : 'Agotado'}
+              </span>
+            </div>
+          </div>
+          <div class="flex items-center space-x-2">
+            <button
+              onclick="shareProduct('${product.id}')"
+              class="p-2 text-muted hover:text-accent hover:bg-gray-50 rounded-soft transition-colors"
+              title="Compartir"
+            >
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Event listeners
+    document.getElementById('tab-publish').addEventListener('click', () => switchTab('publish'));
+    document.getElementById('tab-manage').addEventListener('click', () => switchTab('manage'));
+    document.getElementById('clear-form').addEventListener('click', () => {
+      elements.form.reset();
+      elements.imagePreview.classList.add('hidden');
+    });
+
+    // Inicializar
+    loadUserProducts();
+  </script>
+</Layout>
