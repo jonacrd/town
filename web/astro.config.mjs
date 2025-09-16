@@ -25,17 +25,12 @@ export default defineConfig({
   server: {
     port: 4321,
     host: true,
-    vite: {
-      server: {
-        proxy: {
-          // En dev, cualquier llamada que empiece con /api va al backend
-          '/api': { target: 'http://localhost:4000', changeOrigin: true },
-          // También proxy para rutas de auth, ai, coins, etc.
-          '/auth': { target: 'http://localhost:4000', changeOrigin: true },
-          '/ai': { target: 'http://localhost:4000', changeOrigin: true },
-          '/coins': { target: 'http://localhost:4000', changeOrigin: true }
-        }
-      }
+    vite: { 
+      server: { 
+        proxy: { 
+          '/api': { target: 'http://localhost:4000', changeOrigin: true } 
+        } 
+      } 
     }
   },
   vite: {

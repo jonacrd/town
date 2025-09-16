@@ -246,7 +246,7 @@ import Layout from '@/layouts/Layout.astro';
     // Función para cargar productos del vendedor
     async function loadUserProducts() {
       try {
-        const response = await apiGet('/api/products', { active: true, limit: 100 });
+        const response = await apiGet('/products', { active: true, limit: 100 });
         if (response.success && response.data) {
           userProducts = response.data;
           updateStats();

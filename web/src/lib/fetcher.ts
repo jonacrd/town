@@ -1,36 +1,28 @@
-const BASE = import.meta.env.PUBLIC_API_BASE_URL; // opcional en dev
-const API_URL = BASE || 'http://localhost:4000'; // URL directa en desarrollo
+const BASE = import.meta.env.PUBLIC_API_BASE_URL; // vacío en dev
 
-function buildUrl(path: string, params?: Record<string,string|number|boolean>) {
-  // En desarrollo, usar URL directa a la API (sin proxy)
-  // En producción, usar BASE URL
-  const baseUrl = import.meta.env.DEV ? 'http://localhost:4000' : (BASE || window.location.origin);
-  
-  // Construir URL completa
-  const finalUrl = new URL(path, baseUrl);
-  
-  // Agregar parámetros si existen
-  if (params) {
-    Object.entries(params).forEach(([k,v]) => finalUrl.searchParams.set(k, String(v)));
-  }
-  
-  return finalUrl.toString();
+function buildUrl(path: string, params?: Record<string, string | number | boolean>) {
+  const rel = path.startsWith('/api') ? path : `/api${path.startsWith('/') ? '' : '/'}${path}`;
+  const href = BASE ? new URL(rel.replace('/api', ''), BASE).toString()
+                    : new URL(rel, window.location.origin).toString();
+  const url = new URL(href);
+  if (params) Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+  return url.toString();
 }
 
-export async function apiGet(path: string, params?: Record<string,string|number|boolean>) {
-  const url = buildUrl(path, params);
-  const res = await fetch(url, { headers: { Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`API ${res.status}: ${await res.text().catch(()=>res.statusText)}`);
-  return res.json();
+export async function apiGet(p: string, q?: Record<string, string | number | boolean>) {
+  const r = await fetch(buildUrl(p, q));
+  const t = await r.text().catch(() => '');
+  if (!r.ok) throw new Error(t || r.statusText);
+  return t ? JSON.parse(t) : null;
 }
 
-export async function apiPost(path: string, body: unknown) {
-  const url = buildUrl(path);
-  const res = await fetch(url, {
+export async function apiPost(p: string, b: unknown) {
+  const r = await fetch(buildUrl(p), {
     method: 'POST',
-    headers: { 'Content-Type':'application/json', Accept: 'application/json' },
-    body: JSON.stringify(body)
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(b)
   });
-  if (!res.ok) throw new Error(`API ${res.status}: ${await res.text().catch(()=>res.statusText)}`);
-  return res.json();
+  const t = await r.text().catch(() => '');
+  if (!r.ok) throw new Error(t || r.statusText);
+  return t ? JSON.parse(t) : null;
 }

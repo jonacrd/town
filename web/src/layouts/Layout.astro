@@ -131,27 +131,14 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
 
     <!-- Service Worker Registration -->
     <script>
-      if (import.meta.env.DEV && 'serviceWorker' in navigator) {
-        // En desarrollo, desregistrar TODOS los service workers
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-          registrations.forEach(registration => {
-            registration.unregister().then(() => {
-              console.log('SW unregistered for development');
-            });
-          });
-        });
-        
-        // Recargar la página después de desregistrar para limpiar el cache
-        if (navigator.serviceWorker.controller) {
-          window.location.reload();
+      if ('serviceWorker' in navigator) {
+        if (import.meta.env.DEV) {
+          navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+        } else {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(reg => console.log('SW registered', reg))
+            .catch(err => console.error('SW error', err));
         }
-      }
-      
-      // Solo registrar en producción
-      if (import.meta.env.PROD && 'serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/service-worker.js')
-          .then(reg => console.log('SW registered:', reg))
-          .catch(err => console.error('SW error:', err));
       }
 
       // PWA Install Prompt

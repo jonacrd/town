@@ -333,7 +333,7 @@ import Layout from '@/layouts/Layout.astro';
         if (filters.query) params.query = filters.query;
         if (filters.category) params.category = filters.category;
 
-        const products = await apiGet('/api/products', params);
+        const products = await apiGet('/products', params);
         allProducts = products;
         renderProducts(products, filters.sort, filters.inStockOnly);
       } catch (error) {
