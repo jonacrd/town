@@ -2,20 +2,8 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
 
-// Conditional import for Vercel adapter (only in production)
-let adapter = null;
-if (process.env.NODE_ENV === 'production') {
-  try {
-    const vercel = await import('@astrojs/vercel/static');
-    adapter = vercel.default({
-      webAnalytics: {
-        enabled: true,
-      },
-    });
-  } catch (e) {
-    console.warn('Vercel adapter not available, building as static');
-  }
-}
+// Vercel adapter for production
+import vercel from '@astrojs/vercel/static';
 
 // https://astro.build/config
 export default defineConfig({
@@ -26,7 +14,11 @@ export default defineConfig({
     }),
   ],
   output: 'static',
-  ...(adapter && { adapter }),
+  adapter: vercel({
+    webAnalytics: {
+      enabled: true,
+    },
+  }),
   build: {
     assets: 'assets',
   },
