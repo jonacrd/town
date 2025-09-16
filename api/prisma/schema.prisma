@@ -94,6 +94,17 @@ model CoinLedger {
   @@map("coin_ledger")
 }
 
+model Otp {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String   // Código de 6 dígitos
+  expiresAt DateTime // Expira en 10 minutos
+  tries     Int      @default(0) // Intentos de verificación
+  createdAt DateTime @default(now())
+
+  @@map("otps")
+}
+
 enum Role {
   CUSTOMER
   SELLER

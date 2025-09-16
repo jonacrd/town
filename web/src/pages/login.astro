@@ -1,52 +1,345 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from '../layouts/Layout.astro';
 ---
 
-<Layout title="Town - Iniciar Sesión" showBottomNav={false} showTopNav={false}>
-  <div class="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center px-4">
-    <form id="login-form" class="max-w-sm mx-auto p-4 bg-surface rounded shadow">
-      <h1 class="text-xl font-semibold mb-3">Entrar a Town</h1>
-      <label class="block mb-2 text-sm">WhatsApp</label>
-      <input name="phone" placeholder="+56 9 1234 5678" class="w-full border rounded px-3 py-2 mb-3" />
-      <label class="block mb-2 text-sm">Nombre</label>
-      <input name="name" placeholder="Tu nombre" class="w-full border rounded px-3 py-2 mb-4" />
-      <button type="submit" class="w-full bg-primary text-white rounded px-3 py-2">Registrar con WhatsApp</button>
-    </form>
+<Layout title="Login - Town">
+  <div class="min-h-screen bg-bg flex items-center justify-center px-4">
+    <div class="max-w-md w-full">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-ink mb-2">Entrar a Town</h1>
+        <p class="text-muted">Ingresa tu número de teléfono para recibir un código de verificación</p>
+      </div>
+
+      <!-- Paso 1: Ingresar teléfono -->
+      <div id="step-1" class="bg-surface rounded-lg shadow-lg p-6">
+        <form id="phone-form" class="space-y-4">
+          <div>
+            <label for="phone" class="block text-sm font-medium text-ink mb-2">
+              Número de teléfono
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              placeholder="+56 9 1234 5678"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            id="send-otp-btn"
+            class="w-full bg-primary hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          >
+            Enviar código
+          </button>
+        </form>
+      </div>
+
+      <!-- Paso 2: Verificar código -->
+      <div id="step-2" class="bg-surface rounded-lg shadow-lg p-6 hidden">
+        <div class="text-center mb-4">
+          <h2 class="text-xl font-semibold text-ink mb-2">Verifica tu código</h2>
+          <p class="text-sm text-muted">
+            Hemos enviado un código de 6 dígitos a <span id="phone-display" class="font-medium"></span>
+          </p>
+        </div>
+
+        <form id="verify-form" class="space-y-4">
+          <div>
+            <label for="code" class="block text-sm font-medium text-ink mb-2">
+              Código de verificación
+            </label>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              placeholder="123456"
+              maxlength="6"
+              pattern="[0-9]{6}"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md text-center text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              required
+            />
+          </div>
+
+          <div>
+            <label for="name" class="block text-sm font-medium text-ink mb-2">
+              Tu nombre (opcional)
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              placeholder="Ingresa tu nombre"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+          
+          <button
+            type="submit"
+            id="verify-btn"
+            class="w-full bg-accent hover:bg-green-600 text-white font-medium py-2 px-4 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
+          >
+            Verificar y entrar
+          </button>
+
+          <button
+            type="button"
+            id="back-btn"
+            class="w-full text-muted hover:text-ink text-sm underline"
+          >
+            ← Cambiar número de teléfono
+          </button>
+        </form>
+
+        <!-- Reenviar código -->
+        <div class="mt-4 text-center">
+          <p class="text-sm text-muted mb-2">¿No recibiste el código?</p>
+          <button
+            id="resend-btn"
+            class="text-primary hover:text-blue-700 text-sm font-medium underline disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Reenviar código
+          </button>
+          <div id="countdown" class="text-xs text-muted mt-1 hidden">
+            Puedes reenviar en <span id="countdown-timer">60</span> segundos
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loading" class="hidden text-center py-4">
+        <div class="inline-flex items-center space-x-2 text-muted">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+          <span>Procesando...</span>
+        </div>
+      </div>
+
+      <!-- Toast notifications -->
+      <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+    </div>
   </div>
 
   <script>
     import { apiPost } from '../lib/fetcher.ts';
-    
-    function toast(msg) {
-      const t = document.createElement('div');
-      t.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-50';
-      t.textContent = msg;
-      document.body.appendChild(t);
-      setTimeout(() => t.remove(), 3000);
+
+    // Estado de la aplicación
+    let currentPhone = '';
+    let countdownInterval = null;
+
+    // Elementos del DOM
+    let elements = {};
+
+    // Función para mostrar toast
+    function showToast(message, type = 'info') {
+      const container = elements.toastContainer;
+      const toast = document.createElement('div');
+      
+      const bgColor = type === 'success' ? 'bg-accent' : 
+                     type === 'error' ? 'bg-red-500' : 'bg-primary';
+      
+      toast.className = `${bgColor} text-white px-4 py-3 rounded-md shadow-lg transform transition-all duration-300 translate-x-full`;
+      toast.textContent = message;
+      
+      container.appendChild(toast);
+      
+      // Animar entrada
+      setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+      
+      // Remover después de 4 segundos
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+        setTimeout(() => container.removeChild(toast), 300);
+      }, 4000);
     }
 
-    async function onSubmit(e) {
+    // Función para mostrar loading
+    function setLoading(show) {
+      elements.loading.classList.toggle('hidden', !show);
+    }
+
+    // Función para iniciar countdown
+    function startCountdown(seconds = 60) {
+      let remaining = seconds;
+      elements.resendBtn.disabled = true;
+      elements.countdown.classList.remove('hidden');
+      
+      countdownInterval = setInterval(() => {
+        remaining--;
+        elements.countdownTimer.textContent = remaining;
+        
+        if (remaining <= 0) {
+          clearInterval(countdownInterval);
+          elements.resendBtn.disabled = false;
+          elements.countdown.classList.add('hidden');
+        }
+      }, 1000);
+    }
+
+    // Paso 1: Enviar OTP
+    async function handlePhoneSubmit(e) {
       e.preventDefault();
-      const form = e.target;
-      const phone = form.querySelector('[name="phone"]').value.trim();
-      const name = form.querySelector('[name="name"]').value.trim();
-      if (!phone) return toast('Ingresa tu WhatsApp');
+      
+      const phone = elements.phoneInput.value.trim();
+      if (!phone) {
+        showToast('Ingresa tu número de teléfono', 'error');
+        return;
+      }
+
+      setLoading(true);
 
       try {
-        const data = await apiPost('/auth/whatsapp', { phone, name });
-        localStorage.setItem('town_user', data.userId);
-        location.href = '/';
-      } catch (err) {
-        console.error(err);
-        toast('No se pudo registrar. Intenta de nuevo.');
+        const response = await apiPost('/auth/otp/start', { phone });
+        
+        if (response.success) {
+          currentPhone = phone;
+          elements.phoneDisplay.textContent = phone;
+          elements.step1.classList.add('hidden');
+          elements.step2.classList.remove('hidden');
+          elements.codeInput.focus();
+          startCountdown(60);
+          showToast('Código enviado correctamente', 'success');
+        }
+      } catch (error) {
+        console.error('Error enviando OTP:', error);
+        showToast('Error al enviar código. Intenta de nuevo.', 'error');
+      } finally {
+        setLoading(false);
       }
     }
 
-    document.getElementById('login-form').addEventListener('submit', onSubmit);
+    // Paso 2: Verificar OTP
+    async function handleVerifySubmit(e) {
+      e.preventDefault();
+      
+      const code = elements.codeInput.value.trim();
+      const name = elements.nameInput.value.trim();
 
-    // Verificar si ya hay usuario logueado
-    if (localStorage.getItem('town_user')) {
-      location.href = '/';
+      if (!code || code.length !== 6) {
+        showToast('Ingresa el código de 6 dígitos', 'error');
+        return;
+      }
+
+      if (!/^\d{6}$/.test(code)) {
+        showToast('El código debe contener solo números', 'error');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await apiPost('/auth/otp/verify', { 
+          phone: currentPhone, 
+          code, 
+          name: name || undefined 
+        });
+        
+        if (response.success && response.userId) {
+          // Guardar usuario en localStorage
+          localStorage.setItem('town_user', response.userId);
+          
+          showToast('¡Bienvenido a Town!', 'success');
+          
+          // Redirigir al home después de un breve delay
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        }
+      } catch (error) {
+        console.error('Error verificando OTP:', error);
+        showToast(error.message || 'Código incorrecto. Intenta de nuevo.', 'error');
+        elements.codeInput.value = '';
+        elements.codeInput.focus();
+      } finally {
+        setLoading(false);
+      }
     }
+
+    // Reenviar código
+    async function handleResend() {
+      if (!currentPhone) return;
+
+      setLoading(true);
+
+      try {
+        const response = await apiPost('/auth/otp/start', { phone: currentPhone });
+        
+        if (response.success) {
+          startCountdown(60);
+          showToast('Código reenviado', 'success');
+        }
+      } catch (error) {
+        console.error('Error reenviando OTP:', error);
+        showToast('Error al reenviar código', 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // Volver al paso 1
+    function goBackToStep1() {
+      elements.step2.classList.add('hidden');
+      elements.step1.classList.remove('hidden');
+      elements.phoneInput.focus();
+      
+      // Limpiar campos del paso 2
+      elements.codeInput.value = '';
+      elements.nameInput.value = '';
+      
+      // Limpiar countdown
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        elements.resendBtn.disabled = false;
+        elements.countdown.classList.add('hidden');
+      }
+    }
+
+    // Auto-format código (solo números)
+    function formatCodeInput(e) {
+      const value = e.target.value.replace(/\D/g, '');
+      e.target.value = value.substring(0, 6);
+    }
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      // Obtener elementos del DOM
+      elements = {
+        step1: document.getElementById('step-1'),
+        step2: document.getElementById('step-2'),
+        phoneForm: document.getElementById('phone-form'),
+        verifyForm: document.getElementById('verify-form'),
+        phoneInput: document.getElementById('phone'),
+        codeInput: document.getElementById('code'),
+        nameInput: document.getElementById('name'),
+        phoneDisplay: document.getElementById('phone-display'),
+        sendOtpBtn: document.getElementById('send-otp-btn'),
+        verifyBtn: document.getElementById('verify-btn'),
+        backBtn: document.getElementById('back-btn'),
+        resendBtn: document.getElementById('resend-btn'),
+        countdown: document.getElementById('countdown'),
+        countdownTimer: document.getElementById('countdown-timer'),
+        loading: document.getElementById('loading'),
+        toastContainer: document.getElementById('toast-container')
+      };
+
+      // Event listeners
+      elements.phoneForm.addEventListener('submit', handlePhoneSubmit);
+      elements.verifyForm.addEventListener('submit', handleVerifySubmit);
+      elements.backBtn.addEventListener('click', goBackToStep1);
+      elements.resendBtn.addEventListener('click', handleResend);
+      elements.codeInput.addEventListener('input', formatCodeInput);
+
+      // Auto-focus en el input de teléfono
+      elements.phoneInput.focus();
+
+      // Verificar si ya hay usuario logueado
+      if (localStorage.getItem('town_user')) {
+        showToast('Ya tienes una sesión activa', 'info');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+      }
+    });
   </script>
 </Layout>
