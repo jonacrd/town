@@ -12,54 +12,46 @@ import {
 } from '../types/index.js';
 
 // GET /products - Listar productos con filtros
-export const getProducts = asyncHandler(async (req: Request, res: Response<PaginatedResponse<ProductWithSeller>>) => {
-  const query = productsQuerySchema.parse(req.query);
+export const getProducts = asyncHandler(async (req: Request, res: Response) => {
+  // Obtener parámetros de consulta con valores por defecto
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 50;
+  const query = req.query.query as string;
+  const category = req.query.category as string;
+  const active = req.query.active === 'true' ? true : req.query.active === 'false' ? false : undefined;
   
   const where = {
-    ...(query.query && {
+    ...(query && {
       OR: [
-        { title: { contains: query.query, mode: 'insensitive' as const } },
-        { description: { contains: query.query, mode: 'insensitive' as const } },
+        { title: { contains: query, mode: 'insensitive' as const } },
+        { description: { contains: query, mode: 'insensitive' as const } },
       ],
     }),
-    ...(query.category && { category: query.category }),
-    ...(query.active !== undefined && { active: query.active }),
+    ...(category && { category }),
+    ...(active !== undefined && { active }),
   };
 
-  const [products, total] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      include: {
-        seller: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                phone: true,
-              },
+  const items = await prisma.product.findMany({
+    where,
+    include: {
+      seller: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              phone: true,
             },
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
-      skip: (query.page - 1) * query.limit,
-      take: query.limit,
-    }),
-    prisma.product.count({ where }),
-  ]);
-
-  const pages = Math.ceil(total / query.limit);
-
-  res.json({
-    success: true,
-    data: products,
-    pagination: {
-      page: query.page,
-      limit: query.limit,
-      total,
-      pages,
     },
+    orderBy: { createdAt: 'desc' },
+    skip: (page - 1) * limit,
+    take: limit,
   });
+
+  // Siempre devolver 200, incluso si está vacío
+  res.json(items); // aunque sea []
 });
 
 // POST /products - Crear producto (seller)

@@ -268,7 +268,8 @@ import Layout from '@/layouts/Layout.astro';
   </div>
 
   <script>
-    import { api, formatPrice, createWhatsAppLink, createProductWhatsAppText } from '../utils/fetcher.ts';
+    import { apiGet } from '../lib/fetcher.ts';
+    import { formatPrice, createWhatsAppLink, createProductWhatsAppText } from '../utils/fetcher.ts';
 
     // Estado de la aplicación
     let cartItems = [];
@@ -325,19 +326,16 @@ import Layout from '@/layouts/Layout.astro';
       elements.grid.style.display = 'none';
 
       try {
-        const response = await api.products.list({
-          query: filters.query || undefined,
-          category: filters.category || undefined,
+        const params = {
           active: true,
           limit: 50
-        });
+        };
+        if (filters.query) params.query = filters.query;
+        if (filters.category) params.category = filters.category;
 
-        if (response.success && response.data) {
-          allProducts = response.data;
-          renderProducts(response.data, filters.sort, filters.inStockOnly);
-        } else {
-          throw new Error(response.error || 'Error al cargar productos');
-        }
+        const products = await apiGet('/products', params);
+        allProducts = products;
+        renderProducts(products, filters.sort, filters.inStockOnly);
       } catch (error) {
         console.error('Error loading products:', error);
         showToast('Error al cargar productos. Verifica tu conexión.', 'error');
@@ -351,7 +349,7 @@ import Layout from '@/layouts/Layout.astro';
               </svg>
             </div>
             <h3 class="text-lg font-medium text-ink mb-2">Error al cargar productos</h3>
-            <p class="text-muted mb-4">Verifica tu conexión a internet</p>
+            <p class="text-muted mb-4">${error.message || 'Verifica tu conexión a internet'}</p>
             <button onclick="loadProducts()" class="bg-primary hover:bg-blue-700 text-primary-fg px-4 py-2 rounded-soft font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
               Reintentar
             </button>

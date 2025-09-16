@@ -1,0 +1,52 @@
+---
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Town - Iniciar Sesión" showBottomNav={false} showTopNav={false}>
+  <div class="min-h-screen bg-gradient-to-br from-primary/5 to-accent/5 flex items-center justify-center px-4">
+    <form id="login-form" class="max-w-sm mx-auto p-4 bg-surface rounded shadow">
+      <h1 class="text-xl font-semibold mb-3">Entrar a Town</h1>
+      <label class="block mb-2 text-sm">WhatsApp</label>
+      <input name="phone" placeholder="+56 9 1234 5678" class="w-full border rounded px-3 py-2 mb-3" />
+      <label class="block mb-2 text-sm">Nombre</label>
+      <input name="name" placeholder="Tu nombre" class="w-full border rounded px-3 py-2 mb-4" />
+      <button type="submit" class="w-full bg-primary text-white rounded px-3 py-2">Registrar con WhatsApp</button>
+    </form>
+  </div>
+
+  <script>
+    import { apiPost } from '../lib/fetcher.ts';
+    
+    function toast(msg) {
+      const t = document.createElement('div');
+      t.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded z-50';
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    async function onSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const phone = form.querySelector('[name="phone"]').value.trim();
+      const name = form.querySelector('[name="name"]').value.trim();
+      if (!phone) return toast('Ingresa tu WhatsApp');
+
+      try {
+        const data = await apiPost('/auth/whatsapp', { phone, name });
+        localStorage.setItem('town_user', data.userId);
+        location.href = '/';
+      } catch (err) {
+        console.error(err);
+        toast('No se pudo registrar. Intenta de nuevo.');
+      }
+    }
+
+    document.getElementById('login-form').addEventListener('submit', onSubmit);
+
+    // Verificar si ya hay usuario logueado
+    if (localStorage.getItem('town_user')) {
+      location.href = '/';
+    }
+  </script>
+</Layout>

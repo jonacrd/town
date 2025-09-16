@@ -1,23 +1,8 @@
 import pino from 'pino';
-import { env } from './env.js';
 
-// Configuración del logger Pino con sanitización
+// Configuración del logger Pino simplificada
 export const logger = pino({
-  level: env.LOG_LEVEL,
-  transport: env.NODE_ENV === 'development' ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      ignore: 'pid,hostname',
-      translateTime: 'HH:MM:ss Z',
-      messageFormat: '{msg}',
-    },
-  } : undefined,
-  formatters: {
-    level: (label) => {
-      return { level: label.toUpperCase() };
-    },
-  },
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   timestamp: pino.stdTimeFunctions.isoTime,
   // Serializers personalizados para sanitizar datos sensibles
   serializers: {
@@ -40,7 +25,7 @@ export const logger = pino({
       return {
         type: err.constructor.name,
         message: err.message,
-        stack: env.NODE_ENV === 'development' ? err.stack : undefined,
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
         ...(err.code && { code: err.code }),
         ...(err.statusCode && { statusCode: err.statusCode }),
       };

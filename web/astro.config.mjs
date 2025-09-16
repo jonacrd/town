@@ -1,7 +1,21 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwind from '@astrojs/tailwind';
-import vercel from '@astrojs/vercel/static';
+
+// Conditional import for Vercel adapter (only in production)
+let adapter = null;
+if (process.env.NODE_ENV === 'production') {
+  try {
+    const vercel = await import('@astrojs/vercel/static');
+    adapter = vercel.default({
+      webAnalytics: {
+        enabled: true,
+      },
+    });
+  } catch (e) {
+    console.warn('Vercel adapter not available, building as static');
+  }
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -12,39 +26,26 @@ export default defineConfig({
     }),
   ],
   output: 'static',
-  adapter: vercel({
-    webAnalytics: {
-      enabled: true,
-    },
-  }),
+  ...(adapter && { adapter }),
   build: {
     assets: 'assets',
-    inlineStylesheets: 'auto',
+  },
+  server: {
+    port: 4321,
+    host: true,
+    vite: {
+      server: {
+        proxy: {
+          // En dev, cualquier llamada que empiece con /api va al backend
+          '/api': { target: 'http://localhost:4000', changeOrigin: true }
+        }
+      }
+    }
   },
   vite: {
     define: {
       __DATE__: `'${new Date().toISOString()}'`,
     },
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            // Separar React en su propio chunk
-            'react-vendor': ['react', 'react-dom'],
-            // Separar utils y componentes grandes
-            'utils': ['./src/utils/fetcher.ts', './src/utils/performance.ts'],
-          },
-        },
-      },
-    },
   },
-  // Configuración para mejor performance
-  compressHTML: true,
-  experimental: {
-    assets: true,
-    optimizeHoistedScript: true,
-  },
-  // Base path para assets (Vercel maneja esto automáticamente)
   base: '/',
-  trailingSlash: 'ignore',
 });

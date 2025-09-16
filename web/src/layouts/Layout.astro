@@ -1,4 +1,6 @@
 ---
+import '../styles/main.css';
+
 export interface Props {
   title: string;
   showBottomNav?: boolean;
@@ -18,13 +20,14 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     
-    <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#2563EB" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Town" />
-    <link rel="apple-touch-icon" href="/icon-192.svg" />
+        <!-- PWA Meta Tags -->
+        <meta name="theme-color" content="#2563EB" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Town" />
+        <link rel="apple-touch-icon" href="/icon-192.svg" />
     
     <!-- Preload fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -49,6 +52,7 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
               
               <div class="flex items-center space-x-4">
                 <a href="/" class="text-ink hover:text-primary transition-colors">Explorar</a>
+                <a href="/feed" class="text-ink hover:text-primary transition-colors">Feed IA</a>
                 <a href="/seller" class="text-ink hover:text-primary transition-colors">Vender</a>
                 <a href="/orders" class="text-ink hover:text-primary transition-colors">Pedidos</a>
               </div>
@@ -65,12 +69,19 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
       <!-- Mobile Bottom Navigation -->
       {showBottomNav && (
         <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-gray-200 z-40">
-          <div class="grid grid-cols-3 h-16">
+          <div class="grid grid-cols-4 h-16">
             <a href="/" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
               <svg class="w-6 h-6 text-muted group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
               </svg>
               <span class="text-muted group-hover:text-primary transition-colors">Explorar</span>
+            </a>
+            
+            <a href="/feed" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
+              <svg class="w-6 h-6 text-muted group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-muted group-hover:text-primary transition-colors">Feed IA</span>
             </a>
             
             <a href="/seller" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
@@ -121,16 +132,14 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
 
     <!-- Service Worker Registration -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js')
-            .then((registration) => {
-              console.log('SW registered: ', registration);
-            })
-            .catch((registrationError) => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
+      if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+        // En dev, desregistra cualquiera para que no rompa HMR/WebSocket
+        navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
+      }
+      if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW registered:', reg))
+          .catch(err => console.error('SW error:', err));
       }
 
       // PWA Install Prompt
@@ -143,12 +152,22 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
       window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        const btn = document.getElementById('install-town');
+        if (btn) btn.style.display = 'inline-flex';
         
-        // Mostrar banner si no se ha descartado antes
+        // También mostrar banner si no se ha descartado antes
         if (!localStorage.getItem('pwa-dismissed')) {
           installBanner.classList.remove('hidden');
         }
       });
+
+      async function installApp() {
+        if (!deferredPrompt) return;
+        const res = await deferredPrompt.prompt();
+        deferredPrompt = null;
+        document.getElementById('install-town')?.style.setProperty('display','none');
+      }
+      window.installTown = installApp;
 
       installButton.addEventListener('click', () => {
         installBanner.classList.add('hidden');
@@ -180,6 +199,11 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
         installBanner.classList.add('hidden');
       });
     </script>
+
+    <!-- Install Town Button -->
+    <button id="install-town" onclick="installTown()" style="display:none" class="fixed right-3 bottom-3 px-3 py-2 rounded bg-primary text-primary-fg shadow">
+      Instalar Town
+    </button>
   </body>
 </html>
 
@@ -192,9 +216,4 @@ const { title, showBottomNav = true, showTopNav = true } = Astro.props;
       margin: 0;
       padding: 0;
     }
-  </style>
-  
-  <!-- Importar estilos globales -->
-  <style>
-    @import '../styles/global.css';
   </style>

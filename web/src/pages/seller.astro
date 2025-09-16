@@ -169,7 +169,8 @@ import Layout from '@/layouts/Layout.astro';
   </div>
 
   <script>
-    import { api, formatPrice, createWhatsAppLink } from '../utils/fetcher.ts';
+    import { apiGet, apiPost } from '../lib/fetcher.ts';
+    import { formatPrice, createWhatsAppLink } from '../utils/fetcher.ts';
 
     // Estado
     let userProducts = [];
@@ -245,7 +246,7 @@ import Layout from '@/layouts/Layout.astro';
     // Función para cargar productos del vendedor
     async function loadUserProducts() {
       try {
-        const response = await api.products.list({ active: true, limit: 100 });
+        const response = await apiGet('/products', { active: true, limit: 100 });
         if (response.success && response.data) {
           userProducts = response.data;
           updateStats();
@@ -341,7 +342,7 @@ import Layout from '@/layouts/Layout.astro';
       `;
 
       try {
-        const response = await api.products.create(formData);
+        const response = await apiPost('/products', formData);
         
         if (response.success && response.data) {
           // Limpiar formulario

@@ -1,145 +1,314 @@
 import express from 'express';
+import cors from 'cors';
+import pino from 'pino';
 import pinoHttp from 'pino-http';
-import { env } from './lib/env.js';
-import { logger, sanitizeForLog } from './lib/logger.js';
-import { corsMiddleware } from './middleware/cors.js';
-import { errorHandler, notFoundHandler } from './middleware/error.js';
-import { generalApiRateLimiter, webhookRateLimiter, broadcastRateLimiter } from './middleware/rateLimiter.js';
 
-// Importar rutas
-import healthRoutes from './routes/health.js';
-import productRoutes from './routes/products.js';
-import orderRoutes from './routes/orders.js';
-import whatsappRoutes from './routes/whatsapp.js';
-
-// Crear aplicación Express
 const app = express();
 
-// Configurar confianza en proxies (importante para obtener IP real)
-app.set('trust proxy', 1);
+// Logger simple
+const logger = pino({ 
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug' 
+});
+app.use(pinoHttp({ logger }));
 
-// Middleware global de seguridad
-app.use(pinoHttp({ 
-  logger,
-  // Sanitizar logs de requests automáticamente
-  serializers: {
-    req: (req) => ({
-      method: req.method,
-      url: req.url,
-      headers: sanitizeForLog(req.headers),
-      remoteAddress: req.remoteAddress,
-    }),
-    res: (res) => ({
-      statusCode: res.statusCode,
-    }),
-  },
-})); // Logger de requests
+// Middleware básico
+app.use(express.json());
 
-app.use(corsMiddleware); // CORS estricto
+// CORS
+const allow = (process.env.ALLOW_ORIGIN || 'http://localhost:4321,http://localhost:4322').split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({ origin: allow.length ? allow : true, credentials: true }));
 
-// Rate limiting general para todas las rutas API
-app.use('/api', generalApiRateLimiter);
+// Health check
+app.get('/health', (_req, res) => res.json({ ok: true, time: new Date().toISOString() }));
 
-// Parsers con límites de seguridad
-app.use(express.json({ 
-  limit: '1mb', // Reducido de 10mb por seguridad
-  strict: true,
-  type: 'application/json'
-}));
-app.use(express.urlencoded({ 
-  extended: true, 
-  limit: '1mb',
-  parameterLimit: 100 // Limitar número de parámetros
-}));
-
-// Health check endpoint (sin rate limiting)
-app.use('/health', healthRoutes);
-
-// API routes con validación
-app.use('/api/products', productRoutes);
-app.use('/api/orders', orderRoutes);
-
-// WhatsApp webhook routes con rate limiting específico
-app.use('/webhook/whatsapp', webhookRateLimiter, whatsappRoutes);
-
-// Broadcast routes con rate limiting más estricto (si se implementa)
-app.use('/api/broadcast', broadcastRateLimiter, (req, res) => {
-  res.status(501).json({
-    success: false,
-    error: 'Broadcast functionality not implemented yet'
-  });
+// Auth endpoint
+app.post('/auth/whatsapp', (req, res) => {
+  const { phone, name } = req.body;
+  if (!phone) {
+    return res.status(400).json({ error: 'phone requerido' });
+  }
+  
+  // Simular creación de usuario
+  const userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8);
+  logger.info({ phone, name, userId }, 'Usuario registrado via WhatsApp');
+  
+  res.json({ userId });
 });
 
-// Root endpoint con información limitada
-app.get('/', (req, res) => {
+// Products endpoint - Mock data
+app.get('/api/products', (req, res) => {
+  const mockProducts = [
+    {
+      id: 'prod_1',
+      title: 'Empanadas de Pino (6 unidades)',
+      description: 'Deliciosas empanadas caseras de pino, preparadas con carne, cebolla, huevo duro y aceitunas.',
+      priceCents: 450000, // $4.500 CLP
+      stock: 12,
+      category: 'comida',
+      country: 'Chile',
+      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_1',
+        storeName: 'Cocina de la Abuela',
+        user: {
+          name: 'María González',
+          phone: '+56912345678'
+        }
+      }
+    },
+    {
+      id: 'prod_2',
+      title: 'Arepas Venezolanas (4 unidades)',
+      description: 'Arepas tradicionales venezolanas, perfectas para rellenar con tus ingredientes favoritos.',
+      priceCents: 320000, // $3.200 CLP
+      stock: 8,
+      category: 'comida',
+      country: 'Venezuela',
+      imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_2',
+        storeName: 'Sabores de Venezuela',
+        user: {
+          name: 'Carlos Rodríguez',
+          phone: '+56987654321'
+        }
+      }
+    },
+    {
+      id: 'prod_3',
+      title: 'Completos Italianos (2 unidades)',
+      description: 'Completos chilenos con palta, tomate y mayonesa. Un clásico irresistible.',
+      priceCents: 280000, // $2.800 CLP
+      stock: 15,
+      category: 'fast-food',
+      country: 'Chile',
+      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_3',
+        storeName: 'Completos Don Juan',
+        user: {
+          name: 'Juan Pérez',
+          phone: '+56911111111'
+        }
+      }
+    },
+    {
+      id: 'prod_4',
+      title: 'Tequeños (12 unidades)',
+      description: 'Crujientes tequeños venezolanos rellenos de queso blanco, perfectos para compartir.',
+      priceCents: 380000, // $3.800 CLP
+      stock: 6,
+      category: 'fast-food',
+      country: 'Venezuela',
+      imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_2',
+        storeName: 'Sabores de Venezuela',
+        user: {
+          name: 'Carlos Rodríguez',
+          phone: '+56987654321'
+        }
+      }
+    },
+    {
+      id: 'prod_5',
+      title: 'Camiseta Básica Algodón',
+      description: 'Camiseta cómoda de algodón 100%, disponible en varios colores.',
+      priceCents: 1200000, // $12.000 CLP
+      stock: 20,
+      category: 'ropa',
+      country: 'Chile',
+      imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_4',
+        storeName: 'Moda Casual',
+        user: {
+          name: 'Ana Silva',
+          phone: '+56922222222'
+        }
+      }
+    },
+    {
+      id: 'prod_6',
+      title: 'Café Colombiano Premium 250g',
+      description: 'Café colombiano de origen, tostado artesanalmente para un sabor excepcional.',
+      priceCents: 850000, // $8.500 CLP
+      stock: 25,
+      category: 'abarrotes',
+      country: 'Venezuela',
+      imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=400&h=400&fit=crop',
+      active: true,
+      createdAt: new Date().toISOString(),
+      seller: {
+        id: 'seller_5',
+        storeName: 'Café & Más',
+        user: {
+          name: 'Luis Morales',
+          phone: '+56933333333'
+        }
+      }
+    }
+  ];
+  
+  // Filtrar por parámetros si existen
+  let filteredProducts = mockProducts;
+  
+  if (req.query.category) {
+    filteredProducts = filteredProducts.filter(p => p.category === req.query.category);
+  }
+  
+  if (req.query.query) {
+    const searchTerm = (req.query.query as string).toLowerCase();
+    filteredProducts = filteredProducts.filter(p => 
+      p.title.toLowerCase().includes(searchTerm) || 
+      p.description.toLowerCase().includes(searchTerm)
+    );
+  }
+  
+  if (req.query.active === 'true') {
+    filteredProducts = filteredProducts.filter(p => p.active);
+  }
+  
+  logger.info({ count: filteredProducts.length, filters: req.query }, 'Productos solicitados');
+  
+  // Siempre devolver 200, incluso si está vacío
+  res.json(filteredProducts);
+});
+
+// AI Feed endpoint
+app.post('/ai/feed', (req, res) => {
+  const { userId, query } = req.body;
+  
+  if (!userId) {
+    return res.status(400).json({ error: 'userId requerido' });
+  }
+  
+  const searchQuery = query || 'productos destacados';
+  
+  // Respuesta mock de IA
+  const aiResponses = {
+    'barato': '¡Perfecto! He encontrado los productos más económicos para ti. Estas opciones cuidan tu presupuesto sin sacrificar calidad.',
+    'comida': '¡Excelente elección! He seleccionado una variedad de productos alimenticios frescos y de calidad.',
+    'venezolano': '¡Genial! Aquí tienes auténticos sabores venezolanos que te harán sentir como en casa.',
+    'chileno': '¡Buena elección! Productos típicos chilenos con el sabor tradicional que buscas.',
+    'default': '¡Hola! He encontrado productos que podrían interesarte. Echa un vistazo a estas recomendaciones especiales.'
+  };
+  
+  const lowerQuery = searchQuery.toLowerCase();
+  let aiAnswer = aiResponses.default;
+  
+  for (const [keyword, response] of Object.entries(aiResponses)) {
+    if (keyword !== 'default' && lowerQuery.includes(keyword)) {
+      aiAnswer = response;
+      break;
+    }
+  }
+  
+  // Simular productos recomendados (usar los primeros 4)
+  const recommendedProducts = [
+    {
+      id: 'prod_1',
+      title: 'Empanadas de Pino (6 unidades)',
+      description: 'Deliciosas empanadas caseras de pino',
+      price: 4500,
+      priceCents: 450000,
+      stock: 12,
+      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
+      category: 'comida',
+      country: 'Chile'
+    },
+    {
+      id: 'prod_2',
+      title: 'Arepas Venezolanas (4 unidades)',
+      description: 'Arepas tradicionales venezolanas',
+      price: 3200,
+      priceCents: 320000,
+      stock: 8,
+      imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400&h=400&fit=crop',
+      category: 'comida',
+      country: 'Venezuela'
+    },
+    {
+      id: 'prod_3',
+      title: 'Completos Italianos (2 unidades)',
+      description: 'Completos chilenos con palta, tomate y mayonesa',
+      price: 2800,
+      priceCents: 280000,
+      stock: 15,
+      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop',
+      category: 'fast-food',
+      country: 'Chile'
+    },
+    {
+      id: 'prod_4',
+      title: 'Tequeños (12 unidades)',
+      description: 'Crujientes tequeños venezolanos rellenos de queso',
+      price: 3800,
+      priceCents: 380000,
+      stock: 6,
+      imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&h=400&fit=crop',
+      category: 'fast-food',
+      country: 'Venezuela'
+    }
+  ];
+  
+  logger.info({ userId, query: searchQuery }, 'AI Feed solicitado');
+  
   res.json({
     success: true,
-    message: 'Town API Server',
-    version: '1.0.0',
-    // Solo mostrar environment en desarrollo
-    ...(env.NODE_ENV === 'development' && { environment: env.NODE_ENV }),
-    timestamp: new Date().toISOString(),
+    data: {
+      answer: `MOCK IA: ${aiAnswer}`,
+      products: recommendedProducts
+    }
   });
 });
 
-// Endpoint de seguridad para verificar configuración (solo desarrollo)
-if (env.NODE_ENV === 'development') {
-  app.get('/debug/config', (req, res) => {
-    res.json({
-      success: true,
-      config: sanitizeForLog({
-        NODE_ENV: env.NODE_ENV,
-        ALLOW_ORIGIN: env.ALLOW_ORIGIN,
-        WHATSAPP_PROVIDER: env.WHATSAPP_PROVIDER,
-        LOG_LEVEL: env.LOG_LEVEL,
-      }),
-    });
-  });
-}
-
-// Middleware de manejo de errores (debe ir al final)
-app.use(notFoundHandler);
-app.use(errorHandler);
-
-// Iniciar servidor
-const startServer = async () => {
-  try {
-    const server = app.listen(env.PORT, () => {
-      logger.info({
-        port: env.PORT,
-        environment: env.NODE_ENV,
-        allowOrigin: env.ALLOW_ORIGIN,
-      }, 'Town API Server started');
-    });
-
-    // Graceful shutdown
-    const gracefulShutdown = (signal: string) => {
-      logger.info(`Received ${signal}, shutting down gracefully`);
-      
-      server.close(() => {
-        logger.info('Server closed');
-        process.exit(0);
-      });
-
-      // Force close after 10 seconds
-      setTimeout(() => {
-        logger.error('Could not close connections in time, forcefully shutting down');
-        process.exit(1);
-      }, 10000);
-    };
-
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-  } catch (error) {
-    logger.error(error, 'Failed to start server');
-    process.exit(1);
+// Coins balance endpoint
+app.get('/coins/balance', (req, res) => {
+  const { userId } = req.query;
+  
+  if (!userId) {
+    return res.status(400).json({ error: 'userId requerido' });
   }
-};
+  
+  // Mock balance
+  const mockBalance = 150; // TownCoins
+  
+  logger.info({ userId, balance: mockBalance }, 'Balance de coins solicitado');
+  
+  res.json({
+    success: true,
+    data: {
+      userId,
+      balance: mockBalance,
+      transactions: [
+        { id: '1', coins: 100, reason: 'first_purchase', createdAt: new Date().toISOString() },
+        { id: '2', coins: 50, reason: 'daily_bonus', createdAt: new Date().toISOString() }
+      ]
+    }
+  });
+});
 
-// Inicializar servidor solo si no estamos en modo test
-if (process.env.NODE_ENV !== 'test') {
-  startServer();
-}
+// 404 handler
+app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
-export default app;
+// Error handler
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: any, _req: any, res: any, _next: any) => {
+  logger.error(err);
+  const msg = process.env.NODE_ENV === 'production' ? 'Server error' : (err.message || 'Server error');
+  res.status(err.status || 500).json({ error: msg });
+});
+
+const port = Number(process.env.PORT || 4000);
+app.listen(port, () => logger.info(`API listening on :${port}`));

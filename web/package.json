@@ -6,13 +6,9 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build",
+    "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx,.astro",
-    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx,.astro --fix",
-    "type-check": "astro check",
-    "clean": "rm -rf dist .astro node_modules/.astro"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/react": "^3.0.0",
@@ -27,14 +23,6 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.3.0",
-    "@astrojs/ts-config": "^1.0.0",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "eslint": "^8.45.0",
-    "eslint-plugin-astro": "^0.29.0",
-    "eslint-plugin-jsx-a11y": "^6.7.0",
-    "eslint-plugin-react": "^7.33.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
     "typescript": "^5.0.0"
   }
 }

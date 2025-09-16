@@ -4,7 +4,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
-.pnpm-debug.log*
 
 # Runtime data
 pids
@@ -34,9 +33,6 @@ build/Release
 # Dependency directories
 jspm_packages/
 
-# TypeScript v1 declaration files
-typings/
-
 # TypeScript cache
 *.tsbuildinfo
 
@@ -61,7 +57,7 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
+# Environment variables
 .env
 .env.local
 .env.development.local
@@ -95,33 +91,50 @@ temp/
 logs
 *.log
 
-# Astro specific
-.astro/
-
-# Build outputs
-dist/
-build/
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 
 # OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Prisma
-prisma/migrations/
+# API specific
+api/dist/
+api/prisma/dev.db*
+api/prisma/migrations/
+
+# Web specific  
+web/dist/
+web/.astro/
+
+# Vercel
+.vercel
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
+
+# Test files temporales
+**/test-*.js
+**/test-*.ts
+**/*-test.*
+**/*-simple.*
+
+# Archivos de backup
+*.bak
+*.backup
+*.old
+
+# Archivos específicos del proyecto
+server-working.js
+mock-server.*

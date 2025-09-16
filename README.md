@@ -1,219 +1,202 @@
-# Town Monorepo
+# 🏘️ Town - Marketplace Comunitario
 
-Monorepo para el proyecto Town con aplicación web (Astro + React PWA) y API (Node.js + Express + Prisma).
+**Town** es una plataforma de marketplace comunitario que conecta vecinos para comprar y vender productos localmente. Desarrollada con tecnologías modernas para ofrecer una experiencia rápida y confiable.
 
-## 📋 Stack Tecnológico
+## 🚀 Características
 
-### Web (`/web`)
-- **Framework**: Astro 4.x con integración React
-- **Estilos**: Tailwind CSS
-- **Tipo**: PWA (Progressive Web App)
-- **Lenguaje**: TypeScript
+- **🛒 Catálogo de Productos**: Navegación intuitiva con filtros por categoría, precio y disponibilidad
+- **📱 PWA Ready**: Experiencia nativa en móviles con instalación offline
+- **🤖 Feed IA**: Recomendaciones inteligentes de productos basadas en preferencias
+- **💰 Sistema de Recompensas**: TownCoins por compras y actividad diaria
+- **📲 Registro WhatsApp**: Autenticación simple con número de teléfono
+- **🌎 Multicultural**: Soporte para productos chilenos y venezolanos
+- **⚡ Performance**: Carga rápida con lazy loading y optimizaciones
 
-### API (`/api`)
-- **Runtime**: Node.js 18+
-- **Framework**: Express.js
-- **Base de datos**: PostgreSQL con Prisma ORM
-- **Lenguaje**: TypeScript
-
-### Herramientas de Desarrollo
-- **Linting**: ESLint con configuración estricta
-- **Formato**: Prettier
-- **Tipado**: TypeScript estricto
-- **Workspaces**: npm workspaces
-
-## 🚀 Scripts Principales
-
-### Desarrollo
-```bash
-# Ejecutar toda la aplicación (web + api)
-npm run dev
-
-# Solo la aplicación web
-npm run dev:web
-
-# Solo la API
-npm run dev:api
-```
-
-### Build
-```bash
-# Build completo
-npm run build
-
-# Build individual
-npm run build:web
-npm run build:api
-```
-
-### Calidad de Código
-```bash
-# Linting
-npm run lint
-npm run lint:fix
-
-# Formateo
-npm run format
-npm run format:check
-
-# Verificación de tipos
-npm run type-check
-```
-
-### Base de Datos (API)
-```bash
-# Generar cliente Prisma
-npm run db:generate --workspace=api
-
-# Push cambios al schema
-npm run db:push --workspace=api
-
-# Crear migración
-npm run db:migrate --workspace=api
-
-# Abrir Prisma Studio
-npm run db:studio --workspace=api
-
-# Ejecutar seed
-npm run db:seed --workspace=api
-```
-
-## 🔧 Configuración de Entorno
-
-### Variables de Entorno Requeridas
-
-#### API (`/api/.env`)
-```env
-# Base de datos
-DATABASE_URL="postgresql://username:password@localhost:5432/town_db"
-
-# Servidor
-PORT=3001
-NODE_ENV=development
-
-# CORS (opcional)
-ALLOWED_ORIGINS="http://localhost:4321"
-```
-
-#### Web (`/web/.env`)
-```env
-# API endpoint
-PUBLIC_API_URL="http://localhost:3001"
-
-# PWA (opcional)
-PUBLIC_APP_NAME="Town"
-PUBLIC_APP_DESCRIPTION="Town Application"
-```
-
-## 🏗️ Arquitectura y Flujo de Datos
-
-```
-┌─────────────────┐    HTTP/REST    ┌─────────────────┐
-│                 │ ────────────────▶│                 │
-│   Web Client    │                 │   API Server    │
-│  (Astro+React)  │◀──────────────── │ (Express+Node)  │
-│   Port: 4321    │    JSON Data    │   Port: 3001    │
-└─────────────────┘                 └─────────────────┘
-         │                                     │
-         │                                     │
-         ▼                                     ▼
-┌─────────────────┐                 ┌─────────────────┐
-│   Static Files  │                 │   PostgreSQL    │
-│   + Service     │                 │   Database      │
-│   Worker (PWA)  │                 │  (via Prisma)   │
-└─────────────────┘                 └─────────────────┘
-```
-
-### Flujo de Datos:
-1. **Cliente Web**: Interfaz de usuario construida con Astro y componentes React
-2. **API REST**: Servidor Express que maneja la lógica de negocio
-3. **Base de Datos**: PostgreSQL con Prisma como ORM
-4. **PWA**: Service Worker para funcionalidad offline
-
-## 🛠️ Configuración Local
-
-### Prerrequisitos
-- Node.js 18+ y npm 9+
-- PostgreSQL 14+
-- Git
-
-### Instalación
-
-1. **Clonar y configurar dependencias**:
-```bash
-git clone <repository-url> town
-cd town
-npm install
-```
-
-2. **Configurar base de datos**:
-```bash
-# Crear base de datos PostgreSQL
-createdb town_db
-
-# Configurar variables de entorno
-cp api/env.example api/.env
-# Editar api/.env con tus credenciales de DB
-```
-
-3. **Inicializar Prisma**:
-```bash
-npm run db:generate --workspace=api
-npm run db:push --workspace=api
-npm run db:seed --workspace=api
-```
-
-4. **Ejecutar en desarrollo**:
-```bash
-# Terminal 1: API
-npm run dev:api
-
-# Terminal 2: Web
-npm run dev:web
-
-# O ambos a la vez:
-npm run dev
-```
-
-### URLs de Desarrollo
-- **Web**: http://localhost:4321
-- **API**: http://localhost:3001
-- **Prisma Studio**: http://localhost:5555 (cuando se ejecute)
-
-## 📁 Estructura de Directorios
+## 🏗️ Arquitectura
 
 ```
 town/
-├── web/                 # Aplicación Astro + React
-│   ├── src/
-│   │   ├── components/  # Componentes React
-│   │   ├── layouts/     # Layouts de Astro
-│   │   ├── pages/       # Páginas de Astro
-│   │   └── styles/      # Estilos globales
-│   ├── public/          # Assets estáticos
-│   └── package.json
-├── api/                 # Servidor Express + Prisma
-│   ├── src/             # Código fuente
-│   ├── prisma/          # Schema y migraciones
-│   └── package.json
-├── docs/                # Documentación
-├── .editorconfig        # Configuración del editor
-├── .gitignore           # Archivos ignorados por Git
-└── package.json         # Configuración del monorepo
+├── api/          # Backend API (Express + TypeScript)
+├── web/          # Frontend PWA (Astro + React + Tailwind)
+├── docs/         # Documentación del proyecto
+└── scripts/      # Scripts de deployment
 ```
 
-## 🤝 Contribución
+## 🛠️ Stack Tecnológico
 
-1. Crear rama desde `main`
-2. Realizar cambios siguiendo las convenciones de código
-3. Ejecutar `npm run lint` y `npm run type-check`
-4. Commit con mensajes claros y atómicos
-5. Crear Pull Request
+### Backend (`/api`)
+- **Express.js** - Framework web
+- **TypeScript** - Tipado estático
+- **Prisma** - ORM para base de datos
+- **PostgreSQL** - Base de datos principal
+- **Pino** - Logging estructurado
+- **CORS** - Manejo de cross-origin requests
 
-## 📝 Notas Adicionales
+### Frontend (`/web`)
+- **Astro** - Framework web moderno
+- **React** - Componentes interactivos
+- **TypeScript** - Tipado estático
+- **Tailwind CSS** - Estilos utilitarios
+- **Service Worker** - Funcionalidad PWA
+- **Vite** - Bundler y dev server
 
-- El proyecto usa **npm workspaces** para gestionar dependencias
-- Configuración estricta de **ESLint** y **TypeScript**
-- **Prettier** configurado para formateo automático
-- **Astro** optimiza automáticamente para producción
-- **Prisma** maneja migraciones de base de datos
+## 🚀 Inicio Rápido
+
+### Prerrequisitos
+- Node.js 18+ 
+- PostgreSQL 14+ (opcional, funciona con datos mock)
+- npm o yarn
+
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/tu-usuario/town.git
+cd town
+```
+
+### 2. Instalar dependencias
+```bash
+# Instalar dependencias del proyecto principal
+npm install
+
+# Instalar dependencias del API
+cd api
+npm install
+
+# Instalar dependencias del frontend
+cd ../web
+npm install
+```
+
+### 3. Configurar variables de entorno
+
+**API (`/api/.env`):**
+```bash
+cd api
+cp env.example .env
+# Editar .env con tus configuraciones
+```
+
+**Web (`/web/.env`):**
+```bash
+cd web
+cp env.example .env
+# Solo necesario para producción
+```
+
+### 4. Ejecutar en desarrollo
+
+**Terminal 1 - API:**
+```bash
+cd api
+npm run dev
+# Servidor API en http://localhost:4000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd web
+npm run dev
+# App web en http://localhost:4321
+```
+
+### 5. Abrir la aplicación
+- **Frontend**: http://localhost:4321
+- **API Health**: http://localhost:4000/health
+- **API Productos**: http://localhost:4000/api/products
+
+## 📱 Funcionalidades Principales
+
+### 🛍️ Catálogo de Productos
+- Navegación por categorías (Comida, Ropa, Hogar, Fast-food, Abarrotes)
+- Búsqueda en tiempo real
+- Filtros por stock y precio
+- Productos chilenos y venezolanos
+
+### 🤖 Feed IA
+- Recomendaciones personalizadas
+- Búsqueda por voz: "¿Qué necesitas hoy?"
+- Respuestas contextuales sobre productos
+
+### 💰 Sistema TownCoins
+- +100 coins por primera compra
+- +50 coins por actividad diaria
+- Historial de transacciones
+
+### 📲 Autenticación
+- Registro simple con WhatsApp
+- Sin contraseñas complicadas
+- Almacenamiento local del usuario
+
+## 🔧 Scripts Disponibles
+
+### API (`/api`)
+```bash
+npm run dev          # Desarrollo con hot reload
+npm run build        # Compilar TypeScript
+npm run start        # Producción
+npm run migrate      # Migraciones Prisma
+npm run generate     # Generar cliente Prisma
+```
+
+### Web (`/web`)
+```bash
+npm run dev          # Desarrollo con HMR
+npm run build        # Build para producción
+npm run preview      # Preview del build
+npm run astro        # CLI de Astro
+```
+
+## 🌐 API Endpoints
+
+### Públicos
+- `GET /health` - Estado del servidor
+- `GET /api/products` - Listado de productos
+- `POST /auth/whatsapp` - Registro/login con WhatsApp
+
+### Feed IA
+- `POST /ai/feed` - Recomendaciones personalizadas
+- `GET /coins/balance` - Balance de TownCoins
+
+### Parámetros de Productos
+```bash
+GET /api/products?category=comida&query=empanada&active=true
+```
+
+## 🚀 Deploy
+
+### Desarrollo Local
+El proyecto está configurado para funcionar inmediatamente con datos mock, sin necesidad de configurar base de datos.
+
+### Producción
+1. Configurar variables de entorno de producción
+2. Configurar base de datos PostgreSQL
+3. Ejecutar migraciones: `npm run migrate`
+4. Build: `npm run build`
+5. Deploy API y Frontend por separado
+
+### Plataformas Recomendadas
+- **API**: Railway, Render, Heroku
+- **Frontend**: Vercel, Netlify
+- **Base de Datos**: Supabase, PlanetScale, Railway
+
+## 🤝 Contribuir
+
+1. Fork del proyecto
+2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+3. Commit cambios: `git commit -am 'Agregar nueva funcionalidad'`
+4. Push a la rama: `git push origin feature/nueva-funcionalidad`
+5. Abrir Pull Request
+
+## 📝 Licencia
+
+Este proyecto está bajo la licencia MIT. Ver `LICENSE` para más detalles.
+
+## 🆘 Soporte
+
+- **Issues**: [GitHub Issues](https://github.com/tu-usuario/town/issues)
+- **Documentación**: [/docs](./docs/)
+- **Email**: support@town.example.com
+
+---
+
+**Hecho con ❤️ para conectar comunidades locales**

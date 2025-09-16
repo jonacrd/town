@@ -11,13 +11,14 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  phone     String   @unique
+  id        String      @id @default(cuid())
+  phone     String      @unique
   name      String?
-  role      Role     @default(CUSTOMER)
-  createdAt DateTime @default(now())
+  role      Role        @default(CUSTOMER)
+  createdAt DateTime    @default(now())
   orders    Order[]
   seller    Seller?
+  coinLedger CoinLedger[]
 
   @@map("users")
 }
@@ -42,6 +43,7 @@ model Product {
   stock       Int         @default(0)
   imageUrl    String?
   category    String?
+  country     String?     // Para productos de Chile/Venezuela
   active      Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -52,17 +54,18 @@ model Product {
 }
 
 model Order {
-  id         String        @id @default(cuid())
-  userId     String
-  status     OrderStatus   @default(PENDING)
-  payment    PaymentMethod @default(CASH)
-  totalCents Int
-  address    String?
-  note       String?
-  createdAt  DateTime      @default(now())
-  updatedAt  DateTime      @updatedAt
-  items      OrderItem[]
-  user       User          @relation(fields: [userId], references: [id])
+  id           String        @id @default(cuid())
+  userId       String
+  status       OrderStatus   @default(PENDING)
+  payment      PaymentMethod @default(CASH)
+  totalCents   Int
+  coinsGranted Int           @default(0) // TownCoins otorgados por esta compra
+  address      String?
+  note         String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  items        OrderItem[]
+  user         User          @relation(fields: [userId], references: [id])
 
   @@map("orders")
 }
@@ -77,6 +80,18 @@ model OrderItem {
   product    Product @relation(fields: [productId], references: [id])
 
   @@map("order_items")
+}
+
+model CoinLedger {
+  id          String   @id @default(cuid())
+  userId      String
+  coins       Int      // Puede ser positivo (ganancia) o negativo (gasto)
+  reason      String   // "first_purchase", "daily_bonus", "purchase", etc.
+  orderId     String?  // Referencia al pedido si aplica
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@map("coin_ledger")
 }
 
 enum Role {
