@@ -334,12 +334,35 @@ import Layout from '@/layouts/Layout.astro';
         if (filters.category) params.category = filters.category;
 
         const products = await apiGet('/products', params);
-        allProducts = products;
-        renderProducts(products, filters.sort, filters.inStockOnly);
+        allProducts = products || [];
+        
+        if (allProducts.length === 0) {
+          // No hay productos - mostrar mensaje amigable
+          elements.loading.style.display = 'none';
+          elements.grid.style.display = 'none';
+          elements.empty.classList.remove('hidden');
+          elements.empty.innerHTML = `
+            <div class="text-center py-12">
+              <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 4a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-ink mb-2">No hay productos disponibles</h3>
+              <p class="text-muted mb-4">Aún no hay productos publicados. ¡Vuelve pronto!</p>
+              <button onclick="loadProducts()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-soft font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+                Actualizar
+              </button>
+            </div>
+          `;
+        } else {
+          renderProducts(allProducts, filters.sort, filters.inStockOnly);
+        }
       } catch (error) {
         console.error('Error loading products:', error);
-        showToast('Error al cargar productos. Verifica tu conexión.', 'error');
+        showToast('No se pudo cargar los productos', 'error');
         elements.loading.style.display = 'none';
+        elements.grid.style.display = 'none';
         elements.empty.classList.remove('hidden');
         elements.empty.innerHTML = `
           <div class="text-center py-12">
@@ -348,9 +371,9 @@ import Layout from '@/layouts/Layout.astro';
                 <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
               </svg>
             </div>
-            <h3 class="text-lg font-medium text-ink mb-2">Error al cargar productos</h3>
-            <p class="text-muted mb-4">${error.message || 'Verifica tu conexión a internet'}</p>
-            <button onclick="loadProducts()" class="bg-primary hover:bg-blue-700 text-primary-fg px-4 py-2 rounded-soft font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
+            <h3 class="text-lg font-medium text-ink mb-2">No se pudo cargar</h3>
+            <p class="text-muted mb-4">Verifica tu conexión a internet e intenta nuevamente</p>
+            <button onclick="loadProducts()" class="bg-primary hover:bg-blue-700 text-white px-4 py-2 rounded-soft font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
               Reintentar
             </button>
           </div>
@@ -399,11 +422,16 @@ import Layout from '@/layouts/Layout.astro';
                 height="300"
               />
             ` : `
-              <div class="w-full h-full flex items-center justify-center bg-gray-100">
-                <div class="w-16 h-16 bg-gray-200 rounded-soft flex items-center justify-center">
-                  <svg class="w-8 h-8 text-muted" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                <div class="w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center">
+                  <svg class="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                     <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                   </svg>
+                </div>
+                <div class="absolute bottom-2 left-2 right-2">
+                  <div class="bg-white/80 backdrop-blur-sm rounded px-2 py-1">
+                    <span class="text-xs text-gray-600">Sin imagen</span>
+                  </div>
                 </div>
               </div>
             `}
