@@ -1,12 +1,19 @@
 const BASE = import.meta.env.PUBLIC_API_BASE_URL; // opcional en dev
+const API_URL = BASE || 'http://localhost:4000'; // URL directa en desarrollo
 
 function buildUrl(path: string, params?: Record<string,string|number|boolean>) {
-  // Si hay BASE (producción), arma URL absoluta; si no, usa ruta relativa /api
-  const isAbsolute = !!BASE && !path.startsWith('http');
-  const u = isAbsolute ? new URL(path, BASE) : new URL(path, window.location.origin);
-  if (!isAbsolute && !path.startsWith('/api')) path = `/api${path.startsWith('/') ? '' : '/'}${path}`;
-  const finalUrl = isAbsolute ? u : new URL(path, window.location.origin);
-  if (params) Object.entries(params).forEach(([k,v]) => finalUrl.searchParams.set(k, String(v)));
+  // En desarrollo, usar URL directa a la API (sin proxy)
+  // En producción, usar BASE URL
+  const baseUrl = import.meta.env.DEV ? 'http://localhost:4000' : (BASE || window.location.origin);
+  
+  // Construir URL completa
+  const finalUrl = new URL(path, baseUrl);
+  
+  // Agregar parámetros si existen
+  if (params) {
+    Object.entries(params).forEach(([k,v]) => finalUrl.searchParams.set(k, String(v)));
+  }
+  
   return finalUrl.toString();
 }
 

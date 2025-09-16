@@ -37,7 +37,11 @@ export default defineConfig({
       server: {
         proxy: {
           // En dev, cualquier llamada que empiece con /api va al backend
-          '/api': { target: 'http://localhost:4000', changeOrigin: true }
+          '/api': { target: 'http://localhost:4000', changeOrigin: true },
+          // También proxy para rutas de auth, ai, coins, etc.
+          '/auth': { target: 'http://localhost:4000', changeOrigin: true },
+          '/ai': { target: 'http://localhost:4000', changeOrigin: true },
+          '/coins': { target: 'http://localhost:4000', changeOrigin: true }
         }
       }
     }
