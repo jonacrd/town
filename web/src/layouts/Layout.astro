@@ -1,9 +1,11 @@
 ---
 export interface Props {
   title: string;
+  showBottomNav?: boolean;
+  showTopNav?: boolean;
 }
 
-const { title } = Astro.props;
+const { title, showBottomNav = true, showTopNav = true } = Astro.props;
 ---
 
 <!DOCTYPE html>
@@ -17,29 +19,182 @@ const { title } = Astro.props;
     <title>{title}</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="theme-color" content="#3b82f6" />
+    <meta name="theme-color" content="#2563EB" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Town" />
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
     
     <!-- Preload fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   </head>
-  <body class="min-h-screen bg-gray-50 font-sans antialiased">
-    <slot />
+  <body class="min-h-screen bg-bg font-sans antialiased">
+    <div class="flex flex-col min-h-screen">
+      <!-- Desktop Top Navigation -->
+      {showTopNav && (
+        <nav class="hidden lg:block bg-surface border-b border-gray-200 sticky top-0 z-40">
+          <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center space-x-2">
+                  <div class="w-8 h-8 bg-primary rounded-soft flex items-center justify-center">
+                    <span class="text-primary-fg font-bold text-lg">T</span>
+                  </div>
+                  <span class="font-bold text-xl text-ink">Town</span>
+                </a>
+              </div>
+              
+              <div class="flex items-center space-x-4">
+                <a href="/" class="text-ink hover:text-primary transition-colors">Explorar</a>
+                <a href="/seller" class="text-ink hover:text-primary transition-colors">Vender</a>
+                <a href="/orders" class="text-ink hover:text-primary transition-colors">Pedidos</a>
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      <!-- Main Content -->
+      <main class="flex-1 pb-20 lg:pb-0">
+        <slot />
+      </main>
+
+      <!-- Mobile Bottom Navigation -->
+      {showBottomNav && (
+        <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-gray-200 z-40">
+          <div class="grid grid-cols-3 h-16">
+            <a href="/" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
+              <svg class="w-6 h-6 text-muted group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+              </svg>
+              <span class="text-muted group-hover:text-primary transition-colors">Explorar</span>
+            </a>
+            
+            <a href="/seller" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
+              <div class="w-8 h-8 bg-primary group-hover:bg-blue-700 rounded-full flex items-center justify-center transition-colors">
+                <svg class="w-5 h-5 text-primary-fg" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd"></path>
+                </svg>
+              </div>
+              <span class="text-muted group-hover:text-primary transition-colors">Vender</span>
+            </a>
+            
+            <a href="/orders" class="flex flex-col items-center justify-center space-y-1 text-xs hover:bg-gray-50 transition-colors group">
+              <svg class="w-6 h-6 text-muted group-hover:text-primary transition-colors" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 2a4 4 0 00-4 4v1H5a1 1 0 00-.994.89l-1 9A1 1 0 004 18h12a1 1 0 00.994-1.11l-1-9A1 1 0 0015 7h-1V6a4 4 0 00-4-4zM8 6a2 2 0 114 0v1H8V6zm0 3a1 1 0 012 0 1 1 0 11-2 0z" clipRule="evenodd"></path>
+              </svg>
+              <span class="text-muted group-hover:text-primary transition-colors">Perfil</span>
+            </a>
+          </div>
+        </nav>
+      )}
+    </div>
+
+    <!-- PWA Install Prompt -->
+    <div id="pwa-install-banner" class="hidden fixed bottom-20 lg:bottom-4 left-4 right-4 lg:left-auto lg:right-4 lg:max-w-sm bg-surface border border-gray-200 rounded-soft shadow-soft-lg p-4 z-50">
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 bg-primary rounded-soft flex items-center justify-center flex-shrink-0">
+          <span class="text-primary-fg font-bold">T</span>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="font-semibold text-ink text-sm">Instalar Town</h3>
+          <p class="text-muted text-xs mt-1">Agrega Town a tu pantalla de inicio para acceso rápido</p>
+          <div class="flex gap-2 mt-3">
+            <button id="pwa-install-button" class="bg-primary hover:bg-blue-700 text-primary-fg px-3 py-1.5 rounded-soft text-xs font-medium transition-colors">
+              Instalar
+            </button>
+            <button id="pwa-dismiss-button" class="text-muted hover:text-ink px-3 py-1.5 text-xs transition-colors">
+              Ahora no
+            </button>
+          </div>
+        </div>
+        <button id="pwa-close-button" class="text-muted hover:text-ink p-1">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then((registration) => {
+              console.log('SW registered: ', registration);
+            })
+            .catch((registrationError) => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      const installBanner = document.getElementById('pwa-install-banner');
+      const installButton = document.getElementById('pwa-install-button');
+      const dismissButton = document.getElementById('pwa-dismiss-button');
+      const closeButton = document.getElementById('pwa-close-button');
+
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Mostrar banner si no se ha descartado antes
+        if (!localStorage.getItem('pwa-dismissed')) {
+          installBanner.classList.remove('hidden');
+        }
+      });
+
+      installButton.addEventListener('click', () => {
+        installBanner.classList.add('hidden');
+        
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choiceResult) => {
+            if (choiceResult.outcome === 'accepted') {
+              console.log('User accepted the install prompt');
+            } else {
+              console.log('User dismissed the install prompt');
+            }
+            deferredPrompt = null;
+          });
+        }
+      });
+
+      dismissButton.addEventListener('click', () => {
+        installBanner.classList.add('hidden');
+        localStorage.setItem('pwa-dismissed', 'true');
+      });
+
+      closeButton.addEventListener('click', () => {
+        installBanner.classList.add('hidden');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        console.log('PWA was installed');
+        installBanner.classList.add('hidden');
+      });
+    </script>
   </body>
 </html>
 
-<style is:global>
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-  }
+  <style is:global>
+    html {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
   
-  body {
-    margin: 0;
-    padding: 0;
-  }
-</style>
+  <!-- Importar estilos globales -->
+  <style>
+    @import '../styles/global.css';
+  </style>

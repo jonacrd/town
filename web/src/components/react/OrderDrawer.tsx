@@ -38,6 +38,15 @@ export default function OrderDrawer({
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const isMinimumMet = totalCents >= minimumOrderCents;
 
+  // Formatear precio en CLP
+  const formatPriceCLP = (cents: number) => {
+    return (cents / 100).toLocaleString('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0
+    });
+  };
+
   const handleClose = () => {
     setIsClosing(true);
     setTimeout(() => {
@@ -86,10 +95,10 @@ export default function OrderDrawer({
         
         // Crear mensaje de WhatsApp con detalles del pedido
         const orderDetails = items.map(item => 
-          `• *${item.title}* x${item.quantity} - ${formatPrice(item.priceCents * item.quantity)}`
+          `• *${item.title}* x${item.quantity} - ${formatPriceCLP(item.priceCents * item.quantity)}`
         ).join('\n');
         
-        let whatsappText = `Hola 👋 quiero hacer este pedido:\n\n${orderDetails}\n\n💰 *Total: ${formatPrice(totalCents)}*\n\n`;
+        let whatsappText = `Hola 👋 quiero hacer este pedido:\n\n${orderDetails}\n\n💰 *Total: ${formatPriceCLP(totalCents)}*\n\n`;
         
         if (address) {
           whatsappText += `📍 Mi dirección: ${address}\n`;
@@ -272,16 +281,16 @@ export default function OrderDrawer({
           <div className="border-t border-gray-200 p-4 space-y-4">
             {/* Resumen */}
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted">Subtotal ({totalItems} productos)</span>
-                <span className="font-medium">{formatPrice(totalCents)}</span>
+              <div className="flex justify-between text-lg font-semibold">
+                <span>Total ({totalItems} productos)</span>
+                <span className="text-primary">{formatPriceCLP(totalCents)}</span>
               </div>
               
               {!isMinimumMet && (
-                <div className="text-sm text-warm">
-                  Pedido mínimo: {formatPrice(minimumOrderCents)}
+                <div className="text-sm text-warm mt-2 p-3 bg-warm bg-opacity-10 rounded-soft">
+                  <strong>Pedido mínimo: {formatPriceCLP(minimumOrderCents)}</strong>
                   <br />
-                  Te faltan: {formatPrice(minimumOrderCents - totalCents)}
+                  Te faltan: {formatPriceCLP(minimumOrderCents - totalCents)}
                 </div>
               )}
             </div>
@@ -350,17 +359,40 @@ export default function OrderDrawer({
               </div>
             </div>
 
-            {/* Botón de checkout */}
+            {/* Botón de checkout mejorado */}
             <button
               onClick={handleCreateOrder}
               disabled={!isMinimumMet || isSubmitting}
-              className={`w-full py-3 px-4 rounded-soft font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 ${
+              className={`w-full py-4 px-6 rounded-soft font-semibold text-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 flex items-center justify-center gap-2 ${
                 isMinimumMet && !isSubmitting
-                  ? 'bg-accent hover:bg-green-600 text-white focus:ring-accent'
+                  ? 'bg-accent hover:bg-green-600 text-white focus:ring-accent shadow-lg hover:shadow-xl'
                   : 'bg-gray-200 text-muted cursor-not-allowed'
               }`}
+              aria-label={isSubmitting ? 'Procesando pedido' : isMinimumMet ? 'Confirmar pedido' : 'Pedido mínimo no alcanzado'}
             >
-              {isSubmitting ? 'Creando pedido...' : isMinimumMet ? 'Crear Pedido' : 'Pedido mínimo no alcanzado'}
+              {isSubmitting ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Procesando...
+                </>
+              ) : isMinimumMet ? (
+                <>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  Confirmar Pedido
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                    <path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM4 10a6 6 0 1112 0A6 6 0 014 10z" clipRule="evenodd" />
+                  </svg>
+                  Pedido mínimo no alcanzado
+                </>
+              )}
             </button>
           </div>
         )}
