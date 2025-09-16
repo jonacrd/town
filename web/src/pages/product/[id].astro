@@ -1,8 +1,27 @@
 ---
-import Layout from '@/layouts/Layout.astro';
+import Layout from '../../layouts/Layout.astro';
+
+// getStaticPaths para generar páginas estáticas
+export async function getStaticPaths() {
+  // Productos mock para generar páginas estáticas
+  const mockProducts = [
+    { id: 'prod_1', title: 'Empanadas de Pino (6 unidades)' },
+    { id: 'prod_2', title: 'Arepas Venezolanas (4 unidades)' },
+    { id: 'prod_3', title: 'Completos Italianos (2 unidades)' },
+    { id: 'prod_4', title: 'Tequeños (12 unidades)' },
+    { id: 'prod_5', title: 'Camiseta Básica Algodón' },
+    { id: 'prod_6', title: 'Café Colombiano Premium 250g' },
+  ];
+
+  return mockProducts.map(product => ({
+    params: { id: product.id },
+    props: { product }
+  }));
+}
 
 // En una app real, esto vendría de la API basado en el parámetro id
 const { id } = Astro.params;
+const { product } = Astro.props;
 ---
 
 <Layout title="Town - Producto">
@@ -193,27 +212,67 @@ const { id } = Astro.params;
   </div>
 
   <script define:vars={{ productId: id }}>
-    // Datos de ejemplo - en producción vendrían de la API
+    // Datos de ejemplo - coinciden con la API mock
     const mockProducts = {
-      '1': {
-        id: '1',
-        title: 'iPhone 14 Pro Max 256GB',
-        priceCents: 450000000,
-        stock: 3,
-        imageUrl: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=600&h=600&fit=crop',
-        category: 'Tecnología',
-        seller: 'TechStore Pro',
-        description: 'iPhone 14 Pro Max de 256GB en excelente estado. Incluye cargador original y caja.'
+      'prod_1': {
+        id: 'prod_1',
+        title: 'Empanadas de Pino (6 unidades)',
+        priceCents: 450000,
+        stock: 12,
+        imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=600&fit=crop',
+        category: 'comida',
+        seller: 'Cocina de la Abuela',
+        description: 'Deliciosas empanadas caseras de pino, preparadas con carne, cebolla, huevo duro y aceitunas.'
       },
-      '2': {
-        id: '2',
-        title: 'MacBook Air M2 13" 512GB',
-        priceCents: 520000000,
-        stock: 1,
-        imageUrl: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=600&h=600&fit=crop',
-        category: 'Tecnología',
-        seller: 'Apple Store',
-        description: 'MacBook Air con chip M2, pantalla de 13 pulgadas y 512GB de almacenamiento SSD.'
+      'prod_2': {
+        id: 'prod_2',
+        title: 'Arepas Venezolanas (4 unidades)',
+        priceCents: 320000,
+        stock: 8,
+        imageUrl: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&h=600&fit=crop',
+        category: 'comida',
+        seller: 'Sabores de Venezuela',
+        description: 'Arepas tradicionales venezolanas, perfectas para rellenar con tus ingredientes favoritos.'
+      },
+      'prod_3': {
+        id: 'prod_3',
+        title: 'Completos Italianos (2 unidades)',
+        priceCents: 280000,
+        stock: 15,
+        imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=600&h=600&fit=crop',
+        category: 'fast-food',
+        seller: 'Completos Don Juan',
+        description: 'Completos chilenos con palta, tomate y mayonesa. Un clásico irresistible.'
+      },
+      'prod_4': {
+        id: 'prod_4',
+        title: 'Tequeños (12 unidades)',
+        priceCents: 380000,
+        stock: 6,
+        imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&h=600&fit=crop',
+        category: 'fast-food',
+        seller: 'Sabores de Venezuela',
+        description: 'Crujientes tequeños venezolanos rellenos de queso blanco, perfectos para compartir.'
+      },
+      'prod_5': {
+        id: 'prod_5',
+        title: 'Camiseta Básica Algodón',
+        priceCents: 1200000,
+        stock: 20,
+        imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&h=600&fit=crop',
+        category: 'ropa',
+        seller: 'Moda Casual',
+        description: 'Camiseta cómoda de algodón 100%, disponible en varios colores.'
+      },
+      'prod_6': {
+        id: 'prod_6',
+        title: 'Café Colombiano Premium 250g',
+        priceCents: 850000,
+        stock: 25,
+        imageUrl: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&h=600&fit=crop',
+        category: 'abarrotes',
+        seller: 'Café & Más',
+        description: 'Café colombiano de origen, tostado artesanalmente para un sabor excepcional.'
       }
     };
 

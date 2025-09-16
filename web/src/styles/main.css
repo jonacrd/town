@@ -3,6 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Importar estilos globales personalizados */
-@import './global.css';
+  /* Importar estilos globales personalizados */
+  @import url('./global.css');
 
