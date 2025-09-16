@@ -1,0 +1,38 @@
+{
+  "name": "town-monorepo",
+  "version": "1.0.0",
+  "description": "Monorepo for Town project with web (Astro+React) and API (Node+Express)",
+  "private": true,
+  "workspaces": [
+    "web",
+    "api"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:web\" \"npm run dev:api\"",
+    "dev:web": "npm run dev --workspace=web",
+    "dev:api": "npm run dev --workspace=api",
+    "build": "npm run build --workspace=web && npm run build --workspace=api",
+    "build:web": "npm run build --workspace=web",
+    "build:api": "npm run build --workspace=api",
+    "lint": "npm run lint --workspace=web && npm run lint --workspace=api",
+    "lint:fix": "npm run lint:fix --workspace=web && npm run lint:fix --workspace=api",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "npm run type-check --workspace=web && npm run type-check --workspace=api",
+    "clean": "npm run clean --workspace=web && npm run clean --workspace=api"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "concurrently": "^8.2.0",
+    "eslint": "^8.45.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
